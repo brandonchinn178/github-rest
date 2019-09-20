@@ -1,0 +1,7 @@
+resolver: lts-11.22
+
+packages:
+  - .
+
+extra-deps:
+  - jwt-0.9.0
