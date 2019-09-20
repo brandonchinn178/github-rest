@@ -1,0 +1,50 @@
+name: github-rest
+version: 0.1.0
+verbatim:
+  cabal-version: '>= 1.10'
+license: BSD3
+license-file: LICENSE
+author:
+  - Brandon Chinn <brandon@leapyear.io>
+maintainer:
+  - Brandon Chinn <brandon@leapyear.io>
+category: GitHub
+synopsis: Query the GitHub REST API programmatically
+description: |
+  Query the GitHub REST API programmatically, which can provide a more
+  flexible and clear interface than if all of the endpoints and their types
+  were defined as Haskell values.
+extra-source-files:
+  - README.md
+  - CHANGELOG.md
+
+github: LeapYear/github-rest
+
+ghc-options: -Wall
+when:
+  - condition: impl(ghc >= 8.0)
+    ghc-options:
+      - -Wcompat
+      - -Wincomplete-record-updates
+      - -Wincomplete-uni-patterns
+      - -Wnoncanonical-monad-instances
+      - -Wnoncanonical-monadfail-instances
+
+dependencies:
+- aeson >= 1.1.2.0 && < 1.5
+- base >= 4.9 && < 5
+- bytestring >= 0.10.8.1 && < 0.11
+- http-client >= 0.5.13.1 && < 0.7
+- http-client-tls >= 0.3.5.3 && < 0.4
+- http-types >= 0.12.1 && < 0.13
+- jwt >= 0.9.0 && < 0.11
+- mtl >= 2.2.2 && < 2.3
+- scientific >= 0.3.6.2 && < 0.4
+- text >= 1.2.2.2 && < 1.3
+- time >= 1.8.0.2 && < 1.10
+- transformers >= 0.5.2.0 && < 0.6
+- unliftio >= 0.2.7.0 && < 0.3
+- unliftio-core >= 0.1.1.0 && < 0.2
+
+library:
+  source-dirs: src
