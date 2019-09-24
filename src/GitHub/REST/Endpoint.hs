@@ -18,6 +18,7 @@ module GitHub.REST.Endpoint
   ) where
 
 import Data.Maybe (fromMaybe)
+import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as Text
 import Network.HTTP.Types (Method, StdMethod, renderStdMethod)

@@ -27,6 +27,7 @@ import Data.Aeson (eitherDecode, encode)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as ByteStringL
 import Data.Maybe (fromMaybe)
+import Data.Monoid ((<>))
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import Network.HTTP.Client
