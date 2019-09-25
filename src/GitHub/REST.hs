@@ -8,6 +8,7 @@ Definitions for querying the GitHub REST API.
 
 Example (requires @OverloadedStrings@):
 
+> import Data.Monoid ((<>))
 > import Data.Text (Text)
 > import GitHub.REST
 > import Network.HTTP.Types (StdMethod(..))
@@ -15,10 +16,13 @@ Example (requires @OverloadedStrings@):
 > main = do
 >   let repoOwner = "alice"
 >       repoName = "my-project"
->       userAgent = repoOwner <> "/" <> repoName
->       token = undefined
+>       state = GitHubState
+>         { token = undefined
+>         , userAgent = repoOwner <> "/" <> repoName
+>         , apiVersion = "v3"
+>         }
 >
->   runGitHubT token userAgent $ do
+>   runGitHubT state $ do
 >     ref <- queryGitHub GHEndpoint
 >       { method = GET
 >       , endpoint = "/repos/:owner/:repo/git/refs/:ref"
