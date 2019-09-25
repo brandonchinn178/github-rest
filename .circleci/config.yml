@@ -25,6 +25,7 @@ executors:
     environment:
       STACK_YAML: << parameters.stack_yaml >>
       CI_LATEST: <<# parameters.latest >>1<</ parameters.latest >>
+      LANG: en_US.UTF-8
 
 jobs:
   run_build_and_test:
@@ -50,6 +51,9 @@ jobs:
             curl -sSL https://get.haskellstack.org/ | sed -n 's/^STACK_VERSION="\(.*\)"/\1/p' >> cache-key.txt
 
       # install stack and dependencies
+      - run:
+          name: Install system dependencies
+          command: yum install -y zlib-devel
       - run:
           name: Install stack
           command: |
