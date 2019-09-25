@@ -6,6 +6,7 @@ Portability :  portable
 
 Definitions for handling authentication with the GitHub REST API.
 -}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -43,13 +44,18 @@ fromToken = \case
 getJWTToken :: JWT.Signer -> Int -> IO Token
 getJWTToken signer appId = mkToken <$> getNow
   where
+#if MIN_VERSION_jwt(0,10,0)
+    signToken = flip JWT.encodeSigned mempty
+#else
+    signToken = JWT.encodeSigned
+#endif
     mkToken now =
       let claims = mempty
             { JWT.iat = JWT.numericDate $ utcTimeToPOSIXSeconds now
             , JWT.exp = JWT.numericDate $ utcTimeToPOSIXSeconds now + (10 * 60)
             , JWT.iss = JWT.stringOrURI $ Text.pack $ show appId
             }
-      in BearerToken . Text.encodeUtf8 $ JWT.encodeSigned signer claims
+      in BearerToken . Text.encodeUtf8 $ signToken signer claims
     -- lose a second in the case of rounding
     -- https://github.community/t5/GitHub-API-Development-and/quot-Expiration-time-claim-exp-is-too-far-in-the-future-quot/m-p/20457/highlight/true#M1127
     getNow = addUTCTime (-1) <$> getCurrentTime
