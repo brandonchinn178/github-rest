@@ -40,8 +40,11 @@ fromToken = \case
   AccessToken t -> "token " <> t
   BearerToken t -> "bearer " <> t
 
+-- | The ID of your GitHub application
+type AppId = Int
+
 -- | Create a JWT token that expires in 10 minutes.
-getJWTToken :: JWT.Signer -> Int -> IO Token
+getJWTToken :: JWT.Signer -> AppId -> IO Token
 getJWTToken signer appId = mkToken <$> getNow
   where
 #if MIN_VERSION_jwt(0,10,0)
