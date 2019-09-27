@@ -6,12 +6,10 @@ Portability :  portable
 
 Defines 'MonadGitHubREST' that gives a monad @m@ the capability to query the GitHub REST API.
 -}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeApplications #-}
 
 module GitHub.REST.Monad.Class
   ( MonadGitHubREST(..)
-  , PageLinks(..)
   ) where
 
 import Control.Monad (void, (<=<))
@@ -29,11 +27,11 @@ import qualified Control.Monad.Trans.Writer.Lazy as Lazy
 import qualified Control.Monad.Trans.Writer.Strict as Strict
 import Data.Aeson (FromJSON, Value)
 import Data.Monoid ((<>))
-import qualified Data.Semigroup as Sem
 import Data.Text (Text)
 import qualified Data.Text as Text
 
 import GitHub.REST.Endpoint
+import GitHub.REST.PageLinks (PageLinks(..))
 
 -- | A type class for monads that can query the GitHub REST API.
 --
@@ -135,29 +133,3 @@ instance (Monoid w, MonadGitHubREST m) => MonadGitHubREST (Lazy.WriterT w m) whe
 
 instance (Monoid w, MonadGitHubREST m) => MonadGitHubREST (Strict.WriterT w m) where
   queryGitHubPage' = lift . queryGitHubPage'
-
-{- Pagination -}
-
--- | Helper type for GitHub pagination.
---
--- https://developer.github.com/v3/guides/traversing-with-pagination/
-data PageLinks = PageLinks
-  { pageFirst :: Maybe Text
-  , pagePrev  :: Maybe Text
-  , pageNext  :: Maybe Text
-  , pageLast  :: Maybe Text
-  } deriving (Eq,Show)
-
-instance Sem.Semigroup PageLinks where
-  links1 <> links2 = PageLinks
-    (pageFirst links1 <> pageFirst links2)
-    (pagePrev links1 <> pagePrev links2)
-    (pageNext links1 <> pageNext links2)
-    (pageLast links1 <> pageLast links2)
-
-instance Monoid PageLinks where
-  mempty = PageLinks Nothing Nothing Nothing Nothing
-
-#if !(MIN_VERSION_base(4,11,0))
-  mappend = (Sem.<>)
-#endif

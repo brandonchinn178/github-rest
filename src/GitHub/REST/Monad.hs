@@ -26,7 +26,6 @@ import Control.Monad.Trans (MonadTrans)
 import Data.Aeson (eitherDecode, encode)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as ByteStringL
-import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -47,6 +46,7 @@ import GitHub.REST.Auth (Token, fromToken)
 import GitHub.REST.Endpoint (GHEndpoint(..), endpointPath, renderMethod)
 import GitHub.REST.KeyValue (kvToValue)
 import GitHub.REST.Monad.Class
+import GitHub.REST.PageLinks (parsePageLinks)
 
 data GitHubState = GitHubState
   { token      :: Token
@@ -104,38 +104,6 @@ instance MonadIO m => MonadGitHubREST (GitHubT m) where
       Left e -> Left (Text.pack e, Text.decodeUtf8 $ ByteStringL.toStrict body)
     where
       ghUrl = "https://api.github.com"
-
-      parsePageLinks headers =
-        let split delim = map Text.strip . Text.splitOn delim
-            dropAround begin end s =
-              fromMaybe
-                (error $ "Expected value to wrap within " ++ Text.unpack begin ++ "..." ++ Text.unpack end ++ ": " ++ Text.unpack s)
-                (Text.stripSuffix end =<< Text.stripPrefix begin s)
-
-            parsePageLink link =
-              case split ";" link of
-                [url, rel] ->
-                  let url' = fromMaybe
-                        (error $ "Unknown page link: " ++ show link)
-                        (Text.stripPrefix ghUrl $ dropAround "<" ">" url)
-                  in case split "=" rel of
-                    ["rel", rel'] -> (dropAround "\"" "\"" rel', url')
-                    _ -> error $ "Unknown page link: " ++ show link
-                _ -> error $ "Unknown page link: " ++ show link
-
-            resolve pageLinks "" = pageLinks
-            resolve pageLinks link =
-              let (rel, url) = parsePageLink link
-              in case rel of
-                "first" -> pageLinks { pageFirst = Just url }
-                "prev" -> pageLinks { pagePrev = Just url }
-                "next" -> pageLinks { pageNext = Just url }
-                "last" -> pageLinks { pageLast = Just url }
-                _ -> error $ "Unknown rel in page link: " ++ show link
-
-            linkHeader = Text.decodeUtf8 . fromMaybe "" . lookup "Link" $ headers
-
-        in foldl resolve mempty . split "," $ linkHeader
 
 -- | Run the given 'GitHubT' action with the given token and user agent.
 --
