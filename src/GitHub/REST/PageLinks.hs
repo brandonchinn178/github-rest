@@ -10,8 +10,6 @@ import Data.Maybe (fromMaybe)
 import Data.Semigroup (Semigroup(..))
 import Data.Text (Text)
 import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text
-import Network.HTTP.Types (Header)
 
 -- | Helper type for GitHub pagination.
 --
@@ -37,37 +35,48 @@ instance Monoid PageLinks where
   mappend = (<>)
 #endif
 
-parsePageLinks :: [Header] -> PageLinks
-parsePageLinks headers =
-  let split delim = map Text.strip . Text.splitOn delim
-      dropAround begin end s =
-        fromMaybe
-          (error $ "Expected value to wrap within " ++ Text.unpack begin ++ "..." ++ Text.unpack end ++ ": " ++ Text.unpack s)
-          (Text.stripSuffix end =<< Text.stripPrefix begin s)
+parsePageLinks :: Text -> PageLinks
+parsePageLinks = foldl resolve mempty . split ","
+  where
+    resolve :: PageLinks -> Text -> PageLinks
+    resolve pageLinks "" = pageLinks
+    resolve pageLinks link =
+      let (rel, url) = parsePageLink link
+      in case rel of
+        "first" -> pageLinks { pageFirst = Just url }
+        "prev" -> pageLinks { pagePrev = Just url }
+        "next" -> pageLinks { pageNext = Just url }
+        "last" -> pageLinks { pageLast = Just url }
+        _ -> error $ "Unknown rel in page link: " ++ show link
 
-      parsePageLink link =
-        case split ";" link of
-          [url, rel] ->
-            let url' = fromMaybe
-                  (error $ "Unknown page link: " ++ show link)
-                  (Text.stripPrefix ghUrl $ dropAround "<" ">" url)
-            in case split "=" rel of
-              ["rel", rel'] -> (dropAround "\"" "\"" rel', url')
-              _ -> error $ "Unknown page link: " ++ show link
-          _ -> error $ "Unknown page link: " ++ show link
+-- | Parse a single page link, like:
+--
+-- <https://api.github.com/search/code?q=addClass+user%3Amozilla&page=2>; rel="next"
+--
+-- Returns ("next", "/search/code?q=addClass+user%3Amozilla&page=2")
+parsePageLink :: Text -> (Text, Text)
+parsePageLink link = fromMaybe (error $ "Unknown page link: " ++ show link) $ do
+  (linkUrl, linkRel) <- case split ";" link of
+    [url, rel] -> pure (url, rel)
+    _ -> mempty
 
-      resolve pageLinks "" = pageLinks
-      resolve pageLinks link =
-        let (rel, url) = parsePageLink link
-        in case rel of
-          "first" -> pageLinks { pageFirst = Just url }
-          "prev" -> pageLinks { pagePrev = Just url }
-          "next" -> pageLinks { pageNext = Just url }
-          "last" -> pageLinks { pageLast = Just url }
-          _ -> error $ "Unknown rel in page link: " ++ show link
+  url <- Text.stripPrefix ghUrl $ dropAround "<" ">" linkUrl
+  rel <- case split "=" linkRel of
+    ["rel", linkRel'] -> pure $ dropAround "\"" "\"" linkRel'
+    _ -> mempty
 
-      linkHeader = Text.decodeUtf8 . fromMaybe "" . lookup "Link" $ headers
-
-  in foldl resolve mempty . split "," $ linkHeader
+  pure (rel, url)
   where
     ghUrl = "https://api.github.com"
+
+{- Helpers -}
+
+-- | Split the given text by the given delimiter, stripping any surrounding whitespace.
+split :: Text -> Text -> [Text]
+split delim = map Text.strip . Text.splitOn delim
+
+-- | Drop the given strings at the beginning and end of the given text.
+dropAround :: Text -> Text -> Text -> Text
+dropAround begin end s = fromMaybe badDrop $ Text.stripSuffix end =<< Text.stripPrefix begin s
+  where
+    badDrop = error $ "Expected value to wrap within " ++ Text.unpack begin ++ "..." ++ Text.unpack end ++ ": " ++ Text.unpack s

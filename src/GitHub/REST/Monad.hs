@@ -97,13 +97,14 @@ instance MonadIO m => MonadGitHubREST (GitHubT m) where
         -- In this case, pretend like the server sent back an encoded version of the unit type,
         -- so that `queryGitHub endpoint` would be typed to `m ()`.
         nonEmptyBody = if ByteStringL.null body then encode () else body
-        pageLinks = parsePageLinks $ responseHeaders response
+        pageLinks = maybe mempty parsePageLinks . lookupHeader "Link" $ response
 
     return $ case eitherDecode nonEmptyBody of
       Right payload -> Right (payload, pageLinks)
       Left e -> Left (Text.pack e, Text.decodeUtf8 $ ByteStringL.toStrict body)
     where
       ghUrl = "https://api.github.com"
+      lookupHeader headerName = fmap Text.decodeUtf8 . lookup headerName . responseHeaders
 
 -- | Run the given 'GitHubT' action with the given token and user agent.
 --
