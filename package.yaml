@@ -56,4 +56,5 @@ tests:
     dependencies:
     - github-rest
     - tasty
+    - tasty-hunit
     - tasty-quickcheck

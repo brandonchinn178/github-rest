@@ -13,7 +13,6 @@ module GitHub.REST.Monad.Class
   ) where
 
 import Control.Monad (void, (<=<))
-import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except (ExceptT)
 import Control.Monad.Trans.Identity (IdentityT)
@@ -63,7 +62,7 @@ import GitHub.REST.PageLinks (PageLinks(..))
 -- >     ]
 -- >   , ghData = []
 -- >   }
-class MonadIO m => MonadGitHubREST m where
+class Monad m => MonadGitHubREST m where
   {-# MINIMAL queryGitHubPage' #-}
 
   -- | Query GitHub, returning @Right (payload, links)@ if successful, where @payload@ is the
