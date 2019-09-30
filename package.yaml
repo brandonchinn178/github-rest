@@ -54,6 +54,7 @@ tests:
     source-dirs:  test
     main:         Main.hs
     dependencies:
+    - aeson-qq
     - github-rest
     - tasty
     - tasty-hunit
