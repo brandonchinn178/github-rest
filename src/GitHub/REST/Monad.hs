@@ -11,6 +11,7 @@ the capability to query the GitHub REST API.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 
 module GitHub.REST.Monad
   ( MonadGitHubREST(..)
@@ -49,7 +50,7 @@ import GitHub.REST.Monad.Class
 import GitHub.REST.PageLinks (parsePageLinks)
 
 data GitHubState = GitHubState
-  { token      :: Token
+  { token      :: Maybe Token
   , userAgent  :: ByteString
   , apiVersion :: ByteString
     -- ^ The media type will be sent as: application/vnd.github.VERSION+json. For the standard
@@ -82,8 +83,7 @@ instance MonadIO m => MonadGitHubREST (GitHubT m) where
           , requestHeaders =
               [ (hAccept, "application/vnd.github." <> apiVersion <> "+json")
               , (hUserAgent, userAgent)
-              , (hAuthorization, fromToken token)
-              ]
+              ] ++ maybe [] ((:[]) . (hAuthorization,) . fromToken) token
           , requestBody = RequestBodyLBS $ encode $ kvToValue $ ghData ghEndpoint
           , checkResponse = throwErrorStatusCodes
           }

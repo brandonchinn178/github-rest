@@ -17,7 +17,7 @@ Example (requires @OverloadedStrings@):
 >   let repoOwner = "alice"
 >       repoName = "my-project"
 >       state = GitHubState
->         { token = undefined
+>         { token = Nothing
 >         , userAgent = repoOwner <> "/" <> repoName
 >         , apiVersion = "v3"
 >         }
