@@ -51,7 +51,9 @@ import GitHub.REST.PageLinks (parsePageLinks)
 
 data GitHubState = GitHubState
   { token      :: Maybe Token
+    -- ^ The token to use to authenticate with the API.
   , userAgent  :: ByteString
+    -- ^ The user agent to use when interacting with the API: https://developer.github.com/v3/#user-agent-required
   , apiVersion :: ByteString
     -- ^ The media type will be sent as: application/vnd.github.VERSION+json. For the standard
     -- API endpoints, "v3" should be sufficient here. See https://developer.github.com/v3/media/
