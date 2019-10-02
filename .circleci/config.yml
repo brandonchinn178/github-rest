@@ -118,7 +118,7 @@ jobs:
                 path: .ci/
       - run:
           name: Test
-          command: stack test
+          command: stack test --ta --no-create
 
 workflows:
   version: 2
