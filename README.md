@@ -63,7 +63,7 @@ This package provides a different interface for people with different tastes:
   (e.g. `/repos/:owner/:repo`). Users no longer need to spend time trying to 
   scour documentation to find the corresponding function for an endpoint.
 
-* `github-rest` passes authentication once, with with requests executed in 
+* `github-rest` passes authentication once, with requests executed in 
   one monadic context. The `github` package requires passing in an authentication
   token every time a request is executed
 
