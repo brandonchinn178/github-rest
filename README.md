@@ -53,20 +53,21 @@ main = do
 
 ## Comparison to other libraries
 
-The `github` package provides a pretty good API for querying the GitHub API,
+The `github` package provides a decent API for querying the GitHub API,
 and it defines Haskell data types for each endpoint. These data types can
-definitely be used as the result of `queryGitHub`. This package provides a
-different interface for people with different tastes:
+be used as the result of `queryGitHub`. 
 
-* This package lets one know exactly which GitHub endpoint is being hit
-  (e.g. `/repos/:owner/:repo`), instead of wasting time trying to scour the
-  documentation to find the corresponding function for an endpoint
+This package provides a different interface for people with different tastes:
 
-* The `github` package requires passing in an authentication token every time
-  a request is executed,, whereas in `github-rest`, authentication
-  is passed once, with requests executed in one monadic context
+* `github-rest` informs the user exactly which GitHub endpoint is being hit
+  (e.g. `/repos/:owner/:repo`). Users no longer need to spend time trying to 
+  scour documentation to find the corresponding function for an endpoint.
 
-* Relatedly, `github-rest` provides a monad transformer that handles all GitHub
+* `github-rest` passes authentication once, with with requests executed in 
+  one monadic context. The `github` package requires passing in an authentication
+  token every time a request is executed
+
+* In the same vein, `github-rest` provides a monad transformer that handles all GitHub
   state needed to execute `queryGitHub`. `github` runs everything in `IO`,
   expecting the caller to keep track of GitHub state manually.
 
