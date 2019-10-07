@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
@@ -6,6 +7,9 @@ module MockQuery (tests) where
 
 import Control.Applicative ((<|>))
 import Control.Exception (SomeException, try)
+#if !MIN_VERSION_base(4,13,0)
+import Control.Monad.Fail (MonadFail)
+#endif
 import Control.Monad.State.Strict (StateT, evalStateT, get, put)
 import Data.Aeson (Result(..), Value(..), fromJSON)
 import Data.Either (isLeft)
@@ -87,7 +91,7 @@ tests =
 {- Mock implementation -}
 
 newtype MockREST a = MockREST { unMockREST :: StateT [Either Text Text] IO a }
-  deriving (Functor,Applicative,Monad)
+  deriving (Functor,Applicative,Monad,MonadFail)
 
 runMockREST :: (GHEndpoint -> MockREST a) -> [Either Text Text] -> IO a
 runMockREST f results = (`evalStateT` results) $ unMockREST $ f ghEndpoint

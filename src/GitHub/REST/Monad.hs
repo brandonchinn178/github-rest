@@ -7,6 +7,7 @@ Portability :  portable
 Defines 'GitHubT' and 'MonadGitHubREST', a monad transformer and type class that gives a monad @m@
 the capability to query the GitHub REST API.
 -}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -20,6 +21,9 @@ module GitHub.REST.Monad
   , runGitHubT
   ) where
 
+#if !MIN_VERSION_base(4,13,0)
+import Control.Monad.Fail (MonadFail)
+#endif
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.IO.Unlift (MonadUnliftIO(..), UnliftIO(..), withUnliftIO)
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
@@ -27,7 +31,9 @@ import Control.Monad.Trans (MonadTrans)
 import Data.Aeson (eitherDecode, encode)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as ByteStringL
+#if !MIN_VERSION_base(4,11,0)
 import Data.Monoid ((<>))
+#endif
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import Network.HTTP.Client
@@ -67,6 +73,7 @@ newtype GitHubT m a = GitHubT
     ( Functor
     , Applicative
     , Monad
+    , MonadFail
     , MonadIO
     , MonadTrans
     )
@@ -76,7 +83,7 @@ instance MonadUnliftIO m => MonadUnliftIO (GitHubT m) where
     withUnliftIO $ \u ->
       return $ UnliftIO (unliftIO u . unGitHubT)
 
-instance MonadIO m => MonadGitHubREST (GitHubT m) where
+instance (MonadIO m, MonadFail m) => MonadGitHubREST (GitHubT m) where
   queryGitHubPage' ghEndpoint = do
     (manager, GitHubState{..}) <- GitHubT ask
 

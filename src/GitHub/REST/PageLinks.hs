@@ -7,7 +7,9 @@ module GitHub.REST.PageLinks
   ) where
 
 import Data.Maybe (fromMaybe)
+#if !MIN_VERSION_base(4,11,0)
 import Data.Semigroup (Semigroup(..))
+#endif
 import Data.Text (Text)
 import qualified Data.Text as Text
 

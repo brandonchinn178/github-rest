@@ -6,6 +6,7 @@ Portability :  portable
 
 Defines 'MonadGitHubREST' that gives a monad @m@ the capability to query the GitHub REST API.
 -}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeApplications #-}
 
 module GitHub.REST.Monad.Class
@@ -13,6 +14,9 @@ module GitHub.REST.Monad.Class
   ) where
 
 import Control.Monad (void, (<=<))
+#if !MIN_VERSION_base(4,13,0)
+import Control.Monad.Fail (MonadFail)
+#endif
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except (ExceptT)
 import Control.Monad.Trans.Identity (IdentityT)
@@ -25,7 +29,9 @@ import qualified Control.Monad.Trans.State.Strict as Strict
 import qualified Control.Monad.Trans.Writer.Lazy as Lazy
 import qualified Control.Monad.Trans.Writer.Strict as Strict
 import Data.Aeson (FromJSON, Value)
+#if !MIN_VERSION_base(4,11,0)
 import Data.Monoid ((<>))
+#endif
 import Data.Text (Text)
 import qualified Data.Text as Text
 
@@ -62,7 +68,7 @@ import GitHub.REST.PageLinks (PageLinks(..))
 -- >     ]
 -- >   , ghData = []
 -- >   }
-class Monad m => MonadGitHubREST m where
+class MonadFail m => MonadGitHubREST m where
   {-# MINIMAL queryGitHubPage' #-}
 
   -- | Query GitHub, returning @Right (payload, links)@ if successful, where @payload@ is the

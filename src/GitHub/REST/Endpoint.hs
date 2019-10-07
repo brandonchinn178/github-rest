@@ -6,6 +6,7 @@ Portability :  portable
 
 Define the 'GHEndpoint' helper type for defining a call to a GitHub API endpoint.
 -}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -18,7 +19,9 @@ module GitHub.REST.Endpoint
   ) where
 
 import Data.Maybe (fromMaybe)
+#if !MIN_VERSION_base(4,11,0)
 import Data.Monoid ((<>))
+#endif
 import Data.Text (Text)
 import qualified Data.Text as Text
 import Network.HTTP.Types (Method, StdMethod, renderStdMethod)
