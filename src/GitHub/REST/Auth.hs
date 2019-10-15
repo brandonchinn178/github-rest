@@ -20,7 +20,9 @@ module GitHub.REST.Auth
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
+#if !MIN_VERSION_base(4,11,0)
 import Data.Monoid ((<>))
+#endif
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import Data.Time (addUTCTime, getCurrentTime)

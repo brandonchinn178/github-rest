@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -7,8 +8,10 @@ module Endpoint (tests) where
 import Data.Function (on)
 import Data.List (nubBy)
 import Data.Maybe (fromMaybe)
+#if !MIN_VERSION_base(4,11,0)
 import Data.Monoid ((<>))
 import Data.Semigroup (Semigroup)
+#endif
 import Data.String (IsString(..))
 import Data.Text (Text)
 import qualified Data.Text as Text
