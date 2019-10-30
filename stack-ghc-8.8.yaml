@@ -1,8 +1,4 @@
-resolver: nightly-2019-10-07
+resolver: nightly-2019-11-01
 
 packages:
   - .
-
-extra-deps:
-  - github: ocharles/aeson-qq
-    commit: c9e9537a1d05480649e9f6df70d88b59eb53e5bb
