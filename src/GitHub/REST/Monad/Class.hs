@@ -14,9 +14,6 @@ module GitHub.REST.Monad.Class
   ) where
 
 import Control.Monad (void, (<=<))
-#if !MIN_VERSION_base(4,13,0)
-import Control.Monad.Fail (MonadFail)
-#endif
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except (ExceptT)
 import Control.Monad.Trans.Identity (IdentityT)
@@ -68,7 +65,7 @@ import GitHub.REST.PageLinks (PageLinks(..))
 -- >     ]
 -- >   , ghData = []
 -- >   }
-class MonadFail m => MonadGitHubREST m where
+class Monad m => MonadGitHubREST m where
   {-# MINIMAL queryGitHubPage' #-}
 
   -- | Query GitHub, returning @Right (payload, links)@ if successful, where @payload@ is the
@@ -86,7 +83,7 @@ class MonadFail m => MonadGitHubREST m where
     where
       fail' (message, response) =
         let ellipses s = if Text.length s > 100 then take 100 (Text.unpack s) ++ "..." else Text.unpack s
-        in fail $ "Could not decode response:\nmessage = " ++ ellipses message ++ "\nresponse = " ++ ellipses response
+        in error $ "Could not decode response:\nmessage = " ++ ellipses message ++ "\nresponse = " ++ ellipses response
 
   -- | 'queryGitHubPage', except ignoring pagination links.
   queryGitHub :: FromJSON a => GHEndpoint -> m a
