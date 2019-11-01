@@ -1,5 +1,7 @@
 ## Upcoming
 
+* Remove `MonadFail` constraint on `MonadGitHubREST`
+
 ## 1.0.1
 
 Bundle test files in release tarball

@@ -83,7 +83,7 @@ instance MonadUnliftIO m => MonadUnliftIO (GitHubT m) where
     withUnliftIO $ \u ->
       return $ UnliftIO (unliftIO u . unGitHubT)
 
-instance (MonadIO m, MonadFail m) => MonadGitHubREST (GitHubT m) where
+instance MonadIO m => MonadGitHubREST (GitHubT m) where
   queryGitHubPage' ghEndpoint = do
     (manager, GitHubState{..}) <- GitHubT ask
 
