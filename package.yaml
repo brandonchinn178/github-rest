@@ -1,5 +1,5 @@
 name: github-rest
-version: 1.0.1
+version: 1.0.2
 verbatim:
   cabal-version: '>= 1.10'
 license: BSD3
@@ -47,7 +47,7 @@ dependencies:
 - time >= 1.8.0.2 && < 1.10
 - transformers >= 0.5.2.0 && < 0.6
 - unliftio >= 0.2.7.0 && < 0.3
-- unliftio-core >= 0.1.1.0 && < 0.2
+- unliftio-core >= 0.1.1.0 && < 0.3
 
 library:
   source-dirs: src
