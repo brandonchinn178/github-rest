@@ -25,7 +25,7 @@ module GitHub.REST.Monad
 import Control.Monad.Fail (MonadFail)
 #endif
 import Control.Monad.IO.Class (MonadIO(..))
-import Control.Monad.IO.Unlift (MonadUnliftIO(..), UnliftIO(..), withUnliftIO)
+import Control.Monad.IO.Unlift (MonadUnliftIO(..))
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.Trans (MonadTrans)
 import Data.Aeson (eitherDecode, encode)
@@ -79,9 +79,9 @@ newtype GitHubT m a = GitHubT
     )
 
 instance MonadUnliftIO m => MonadUnliftIO (GitHubT m) where
-  askUnliftIO = GitHubT $
-    withUnliftIO $ \u ->
-      return $ UnliftIO (unliftIO u . unGitHubT)
+  withRunInIO inner = GitHubT $
+    withRunInIO $ \run ->
+      inner (run . unGitHubT)
 
 instance MonadIO m => MonadGitHubREST (GitHubT m) where
   queryGitHubPage' ghEndpoint = do
