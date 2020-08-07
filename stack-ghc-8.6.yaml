@@ -1,7 +1,4 @@
 resolver: lts-14.27
 
-packages:
-  - .
-
 extra-deps:
   - jwt-0.10.0
