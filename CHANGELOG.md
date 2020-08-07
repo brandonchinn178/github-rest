@@ -1,5 +1,9 @@
 ## Upcoming
 
+## 1.0.3
+
+* Fix goldens after GitHub changed documentation URL
+
 ## 1.0.2
 
 * Remove `MonadFail` constraint on `MonadGitHubREST`

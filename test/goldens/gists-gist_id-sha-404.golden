@@ -1,1 +1,1 @@
-Object (fromList [("documentation_url",String "https://developer.github.com/v3/gists/#get-a-specific-revision-of-a-gist"),("message",String "Not Found")])
+Object (fromList [("documentation_url",String "https://docs.github.com/rest/reference/gists#get-a-gist-revision"),("message",String "Not Found")])

@@ -1,1 +1,1 @@
-Object (fromList [("documentation_url",String "https://developer.github.com/v3/gists/#get-a-specific-revision-of-a-gist"),("message",String "No commit found for SHA: d00770679ba293a327156b9e7031c47c6d269157")])
+Object (fromList [("documentation_url",String "https://docs.github.com/rest/reference/gists#get-a-gist-revision"),("message",String "No commit found for SHA: d00770679ba293a327156b9e7031c47c6d269157")])
