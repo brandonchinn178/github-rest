@@ -136,6 +136,16 @@ jobs:
                   mkdir -p .ci/
                   tar czf .ci/haddock-docs.tar.gz -C "$(find .stack-work/dist -regex '.*/doc/html/[^/]*')" .
 
+      # bundle Haskell files for deployment
+      - when:
+          condition: << parameters.latest >>
+          steps:
+            - run:
+                name: stack sdist
+                command: |
+                  stack sdist
+                  cp "$(find .stack-work/ -name 'github-rest-*.tar.gz')" .ci/
+
       - store_artifacts:
           path: .ci/
 
