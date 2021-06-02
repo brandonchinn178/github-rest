@@ -90,7 +90,6 @@ jobs:
             STACK_ARGS=(
                 --test
                 --no-run-tests
-                --ghc-options -Werror
             )
             if [[ -n "${CI_LATEST}" ]]; then
                 STACK_ARGS+=(--coverage)
