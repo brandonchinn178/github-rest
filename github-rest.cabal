@@ -1,13 +1,13 @@
 cabal-version: >= 1.10
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9626757e084e5f6d0d88ae12dee832d693aa6ae2dea9283634eb783be14cfe9f
+-- hash: 800fa4f169210c967d917bacbc61e12d696ad192e8744af6798c68552fd8c05c
 
 name:           github-rest
-version:        1.0.3
+version:        1.1.0
 synopsis:       Query the GitHub REST API programmatically
 description:    Query the GitHub REST API programmatically, which can provide a more
                 flexible and clear interface than if all of the endpoints and their types

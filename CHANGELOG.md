@@ -1,5 +1,7 @@
 ## Upcoming
 
+## 1.1.0
+
 * Rename `GitHubState` to `GitHubSettings`
 * Remove `queryGitHubPage'` -- implement `queryGitHubPage` in `MonadGitHubREST` instead.
 * Expose `queryGitHubPageIO` if users want to manually implement `MonadGitHubREST`
