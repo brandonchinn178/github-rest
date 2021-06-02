@@ -15,9 +15,14 @@ the capability to query the GitHub REST API.
 {-# LANGUAGE TupleSections #-}
 
 module GitHub.REST.Monad
-  ( MonadGitHubREST(..)
-  , GitHubT
+  ( -- * MonadGitHubREST API
+    MonadGitHubREST(..)
+
+    -- * GitHubSettings
   , GitHubSettings(..)
+
+    -- * GitHubT
+  , GitHubT
   , runGitHubT
   ) where
 
@@ -55,6 +60,8 @@ import GitHub.REST.KeyValue (kvToValue)
 import GitHub.REST.Monad.Class
 import GitHub.REST.PageLinks (parsePageLinks)
 
+{- GitHubSettings -}
+
 data GitHubSettings = GitHubSettings
   { token      :: Maybe Token
     -- ^ The token to use to authenticate with the API.
@@ -65,9 +72,23 @@ data GitHubSettings = GitHubSettings
     -- API endpoints, "v3" should be sufficient here. See https://developer.github.com/v3/media/
   }
 
+{- GitHubManager -}
+
+data GitHubManager = GitHubManager
+  { ghSettings :: GitHubSettings
+  , ghManager  :: Manager
+  }
+
+initGitHubManager :: GitHubSettings -> IO GitHubManager
+initGitHubManager ghSettings = do
+  ghManager <- newManager tlsManagerSettings
+  return GitHubManager{..}
+
+{- GitHubT -}
+
 -- | A simple monad that can run REST calls.
 newtype GitHubT m a = GitHubT
-  { unGitHubT :: ReaderT (Manager, GitHubSettings) m a
+  { unGitHubT :: ReaderT GitHubManager m a
   }
   deriving
     ( Functor
@@ -85,7 +106,8 @@ instance MonadUnliftIO m => MonadUnliftIO (GitHubT m) where
 
 instance MonadIO m => MonadGitHubREST (GitHubT m) where
   queryGitHubPage' ghEndpoint = do
-    (manager, GitHubSettings{..}) <- GitHubT ask
+    GitHubManager{..} <- GitHubT ask
+    let GitHubSettings{..} = ghSettings
 
     let request = (parseRequest_ $ Text.unpack $ ghUrl <> endpointPath ghEndpoint)
           { method = renderMethod ghEndpoint
@@ -97,7 +119,7 @@ instance MonadIO m => MonadGitHubREST (GitHubT m) where
           , checkResponse = throwErrorStatusCodes
           }
 
-    response <- liftIO $ httpLbs request manager
+    response <- liftIO $ httpLbs request ghManager
 
     let body = responseBody response
         -- empty body always errors when decoding, even if the end user doesn't care about the
@@ -120,6 +142,6 @@ instance MonadIO m => MonadGitHubREST (GitHubT m) where
 -- The token will be sent with each API request -- see 'Token'. The user agent is also required for
 -- each API request -- see https://developer.github.com/v3/#user-agent-required.
 runGitHubT :: MonadIO m => GitHubSettings -> GitHubT m a -> m a
-runGitHubT state action = do
-  manager <- liftIO $ newManager tlsManagerSettings
-  (`runReaderT` (manager, state)) . unGitHubT $ action
+runGitHubT settings action = do
+  manager <- liftIO $ initGitHubManager settings
+  (`runReaderT` manager) . unGitHubT $ action
