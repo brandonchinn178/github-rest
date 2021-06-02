@@ -1,4 +1,7 @@
-{-|
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE TypeApplications #-}
+
+{- |
 Module      :  GitHub.REST.Monad.Class
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental
@@ -6,63 +9,62 @@ Portability :  portable
 
 Defines 'MonadGitHubREST' that gives a monad @m@ the capability to query the GitHub REST API.
 -}
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE TypeApplications #-}
-
-module GitHub.REST.Monad.Class
-  ( MonadGitHubREST(..)
-  ) where
+module GitHub.REST.Monad.Class (
+  MonadGitHubREST (..),
+) where
 
 import Control.Monad (void)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except (ExceptT)
 import Control.Monad.Trans.Identity (IdentityT)
 import Control.Monad.Trans.Maybe (MaybeT)
-import Control.Monad.Trans.Reader (ReaderT)
 import qualified Control.Monad.Trans.RWS.Lazy as Lazy
 import qualified Control.Monad.Trans.RWS.Strict as Strict
+import Control.Monad.Trans.Reader (ReaderT)
 import qualified Control.Monad.Trans.State.Lazy as Lazy
 import qualified Control.Monad.Trans.State.Strict as Strict
 import qualified Control.Monad.Trans.Writer.Lazy as Lazy
 import qualified Control.Monad.Trans.Writer.Strict as Strict
 import Data.Aeson (FromJSON, Value)
+
 #if !MIN_VERSION_base(4,11,0)
 import Data.Monoid ((<>))
 #endif
 
 import GitHub.REST.Endpoint
-import GitHub.REST.PageLinks (PageLinks(..))
+import GitHub.REST.PageLinks (PageLinks (..))
 
--- | A type class for monads that can query the GitHub REST API.
---
--- Example:
---
--- > -- create the "foo" branch
--- > queryGitHub GHEndpoint
--- >   { method = POST
--- >   , endpoint = "/repos/:owner/:repo/git/refs"
--- >   , endpointVals =
--- >     [ "owner" := "alice"
--- >     , "repo" := "my-project"
--- >     ]
--- >   , ghData =
--- >     [ "ref" := "refs/heads/foo"
--- >     , "sha" := "1234567890abcdef"
--- >     ]
--- >   }
---
--- It's recommended that you create functions for the API endpoints you're using:
---
--- > deleteBranch branch = queryGitHub GHEndpoint
--- >   { method = DELETE
--- >   , endpoint = "/repos/:owner/:repo/git/refs/:ref"
--- >   , endpointVals =
--- >     [ "owner" := "alice"
--- >     , "repo" := "my-project"
--- >     , "ref" := "heads/" <> branch
--- >     ]
--- >   , ghData = []
--- >   }
+{- | A type class for monads that can query the GitHub REST API.
+
+ Example:
+
+ > -- create the "foo" branch
+ > queryGitHub GHEndpoint
+ >   { method = POST
+ >   , endpoint = "/repos/:owner/:repo/git/refs"
+ >   , endpointVals =
+ >     [ "owner" := "alice"
+ >     , "repo" := "my-project"
+ >     ]
+ >   , ghData =
+ >     [ "ref" := "refs/heads/foo"
+ >     , "sha" := "1234567890abcdef"
+ >     ]
+ >   }
+
+ It's recommended that you create functions for the API endpoints you're using:
+
+ > deleteBranch branch = queryGitHub GHEndpoint
+ >   { method = DELETE
+ >   , endpoint = "/repos/:owner/:repo/git/refs/:ref"
+ >   , endpointVals =
+ >     [ "owner" := "alice"
+ >     , "repo" := "my-project"
+ >     , "ref" := "heads/" <> branch
+ >     ]
+ >   , ghData = []
+ >   }
+-}
 class Monad m => MonadGitHubREST m where
   {-# MINIMAL queryGitHubPage #-}
 
@@ -86,7 +88,7 @@ class Monad m => MonadGitHubREST m where
     (payload, pageLinks) <- queryGitHubPage ghEndpoint
     case pageNext pageLinks of
       Just next -> do
-        rest <- queryGitHubAll ghEndpoint { endpoint = next, endpointVals = [] }
+        rest <- queryGitHubAll ghEndpoint{endpoint = next, endpointVals = []}
         return $ payload <> rest
       Nothing -> return payload
 

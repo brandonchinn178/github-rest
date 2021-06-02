@@ -8,27 +8,27 @@ module Endpoint (tests) where
 import Data.Function (on)
 import Data.List (nubBy)
 import Data.Maybe (fromMaybe)
+
 #if !MIN_VERSION_base(4,11,0)
 import Data.Monoid ((<>))
 import Data.Semigroup (Semigroup)
 #endif
-import Data.String (IsString(..))
+import Data.String (IsString (..))
 import Data.Text (Text)
 import qualified Data.Text as Text
-import Network.HTTP.Types (StdMethod(..))
+import Network.HTTP.Types (StdMethod (..))
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck
 
 import GitHub.REST.Endpoint
-import GitHub.REST.KeyValue (KeyValue(..))
+import GitHub.REST.KeyValue (KeyValue (..))
 
 tests :: [TestTree]
 tests =
   [ testProperty "endpointPath with no substitutions" $
       forAll (listOf genNoSubstitute) $ \endpointComponents ->
         let ghEndpoint = mkGHEndpoint endpointComponents []
-        in endpointPath ghEndpoint === concatComponents endpointComponents
-
+         in endpointPath ghEndpoint === concatComponents endpointComponents
   , testProperty "endpointPath with substitutions" $
       forAll (listOf genNoSubstitute) $ \withoutColons ->
         forAll (listOf1 genSubstitute) $ \withColonAndVals' -> do
@@ -47,26 +47,27 @@ tests =
 {- Helpers -}
 
 mkGHEndpoint :: [EndpointComponent] -> EndpointVals -> GHEndpoint
-mkGHEndpoint endpointComponents endpointVals = GHEndpoint
-  { method = GET
-  , endpoint = concatComponents endpointComponents
-  , endpointVals
-  , ghData = []
-  }
+mkGHEndpoint endpointComponents endpointVals =
+  GHEndpoint
+    { method = GET
+    , endpoint = concatComponents endpointComponents
+    , endpointVals
+    , ghData = []
+    }
 
 concatComponents :: [EndpointComponent] -> Text
 concatComponents = ("/" <>) . Text.intercalate "/" . map unComponent
 
 -- | A component in an endpoint path; e.g. does not contain forward slashes.
-newtype EndpointComponent = EndpointComponent { unComponent :: Text }
-  deriving (Show,Eq,IsString,Monoid,Semigroup)
+newtype EndpointComponent = EndpointComponent {unComponent :: Text}
+  deriving (Show, Eq, IsString, Monoid, Semigroup)
 
 -- | Generate a non-substitutionable EndpointComponent.
 genNoSubstitute :: Gen EndpointComponent
 genNoSubstitute = fmap fromString $ listOf1 $ elements allowedUrlCharacters
   where
     -- https://stackoverflow.com/a/41353282
-    allowedUrlCharacters = ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'] ++ "-_.~"
+    allowedUrlCharacters = ['a' .. 'z'] ++ ['A' .. 'Z'] ++ ['0' .. '9'] ++ "-_.~"
 
 -- | Generate a substitutionable EndpointComponent and a value to interpolate.
 genSubstitute :: Gen (EndpointComponent, EndpointComponent)

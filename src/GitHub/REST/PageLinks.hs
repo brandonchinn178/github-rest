@@ -1,34 +1,38 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module GitHub.REST.PageLinks
-  ( PageLinks(..)
-  , parsePageLinks
-  ) where
+module GitHub.REST.PageLinks (
+  PageLinks (..),
+  parsePageLinks,
+) where
 
 import Data.Maybe (fromMaybe)
+
 #if !MIN_VERSION_base(4,11,0)
 import Data.Semigroup (Semigroup(..))
 #endif
 import Data.Text (Text)
 import qualified Data.Text as Text
 
--- | Helper type for GitHub pagination.
---
--- https://developer.github.com/v3/guides/traversing-with-pagination/
+{- | Helper type for GitHub pagination.
+
+ https://developer.github.com/v3/guides/traversing-with-pagination/
+-}
 data PageLinks = PageLinks
   { pageFirst :: Maybe Text
-  , pagePrev  :: Maybe Text
-  , pageNext  :: Maybe Text
-  , pageLast  :: Maybe Text
-  } deriving (Eq,Show)
+  , pagePrev :: Maybe Text
+  , pageNext :: Maybe Text
+  , pageLast :: Maybe Text
+  }
+  deriving (Eq, Show)
 
 instance Semigroup PageLinks where
-  links1 <> links2 = PageLinks
-    (pageFirst links1 <> pageFirst links2)
-    (pagePrev links1 <> pagePrev links2)
-    (pageNext links1 <> pageNext links2)
-    (pageLast links1 <> pageLast links2)
+  links1 <> links2 =
+    PageLinks
+      (pageFirst links1 <> pageFirst links2)
+      (pagePrev links1 <> pagePrev links2)
+      (pageNext links1 <> pageNext links2)
+      (pageLast links1 <> pageLast links2)
 
 instance Monoid PageLinks where
   mempty = PageLinks Nothing Nothing Nothing Nothing
@@ -44,18 +48,19 @@ parsePageLinks = foldl resolve mempty . split ","
     resolve pageLinks "" = pageLinks
     resolve pageLinks link =
       let (rel, url) = parsePageLink link
-      in case rel of
-        "first" -> pageLinks { pageFirst = Just url }
-        "prev" -> pageLinks { pagePrev = Just url }
-        "next" -> pageLinks { pageNext = Just url }
-        "last" -> pageLinks { pageLast = Just url }
-        _ -> error $ "Unknown rel in page link: " ++ show link
+       in case rel of
+            "first" -> pageLinks{pageFirst = Just url}
+            "prev" -> pageLinks{pagePrev = Just url}
+            "next" -> pageLinks{pageNext = Just url}
+            "last" -> pageLinks{pageLast = Just url}
+            _ -> error $ "Unknown rel in page link: " ++ show link
 
--- | Parse a single page link, like:
---
--- <https://api.github.com/search/code?q=addClass+user%3Amozilla&page=2>; rel="next"
---
--- Returns ("next", "/search/code?q=addClass+user%3Amozilla&page=2")
+{- | Parse a single page link, like:
+
+ <https://api.github.com/search/code?q=addClass+user%3Amozilla&page=2>; rel="next"
+
+ Returns ("next", "/search/code?q=addClass+user%3Amozilla&page=2")
+-}
 parsePageLink :: Text -> (Text, Text)
 parsePageLink link = fromMaybe (error $ "Unknown page link: " ++ show link) $ do
   (linkUrl, linkRel) <- case split ";" link of

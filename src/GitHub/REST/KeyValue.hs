@@ -1,4 +1,7 @@
-{-|
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+
+{- |
 Module      :  GitHub.REST.KeyValue
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental
@@ -6,16 +9,13 @@ Portability :  portable
 
 Define the 'KeyValue' helper type.
 -}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs #-}
+module GitHub.REST.KeyValue (
+  KeyValue (..),
+  kvToValue,
+  kvToText,
+) where
 
-module GitHub.REST.KeyValue
-  ( KeyValue(..)
-  , kvToValue
-  , kvToText
-  ) where
-
-import Data.Aeson (ToJSON(..), Value(..), object)
+import Data.Aeson (ToJSON (..), Value (..), object)
 import Data.Aeson.Types (Pair)
 import Data.Scientific (floatingOrInteger)
 import Data.Text (Text)
@@ -24,6 +24,7 @@ import qualified Data.Text as Text
 -- | A type representing a key-value pair.
 data KeyValue where
   (:=) :: (Show v, ToJSON v) => Text -> v -> KeyValue
+
 infixr 1 :=
 
 instance Show KeyValue where

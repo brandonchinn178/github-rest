@@ -30,24 +30,27 @@ tests =
 goldens :: TestName -> String -> GitHubT IO ByteString -> TestTree
 goldens name fp action = goldenVsString name ("test/goldens/" ++ fp) $ runGitHubT state action
   where
-    state = GitHubSettings
-      { token = Nothing
-      , userAgent = "github-rest"
-      , apiVersion = "v3"
-      }
+    state =
+      GitHubSettings
+        { token = Nothing
+        , userAgent = "github-rest"
+        , apiVersion = "v3"
+        }
 
 showResult :: Monad m => m (Either Value Value) -> m ByteString
-showResult m = m >>= \case
-  Right v -> error $ "Got back invalid result: " ++ show v
-  Left e -> return $ Char8.pack $ show e
+showResult m =
+  m >>= \case
+    Right v -> error $ "Got back invalid result: " ++ show v
+    Left e -> return $ Char8.pack $ show e
 
 getGist :: Int -> String -> GHEndpoint
-getGist gistId gistSha = GHEndpoint
-  { method = GET
-  , endpoint = "/gists/:gist_id/:sha"
-  , endpointVals =
-      [ "gist_id" := gistId
-      , "sha" := gistSha
-      ]
-  , ghData = []
-  }
+getGist gistId gistSha =
+  GHEndpoint
+    { method = GET
+    , endpoint = "/gists/:gist_id/:sha"
+    , endpointVals =
+        [ "gist_id" := gistId
+        , "sha" := gistSha
+        ]
+    , ghData = []
+    }
