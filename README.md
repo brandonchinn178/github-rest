@@ -23,7 +23,7 @@ import Network.HTTP.Types (StdMethod(..))
 default (Text)
 
 main = do
-  let state = GitHubState
+  let state = GitHubSettings
         { token = Nothing
           -- ^ An authentication token to use, if any.
         , userAgent = "alice/my-project"

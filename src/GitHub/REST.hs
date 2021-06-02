@@ -12,7 +12,7 @@ module GitHub.REST
   -- * Monad transformer and type-class for querying the GitHub REST API
     MonadGitHubREST(..)
   , GitHubT
-  , GitHubState(..)
+  , GitHubSettings(..)
   , runGitHubT
   -- * GitHub authentication
   , Token(..)

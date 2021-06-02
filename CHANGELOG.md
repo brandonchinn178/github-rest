@@ -1,5 +1,7 @@
 ## Upcoming
 
+* Rename `GitHubState` to `GitHubSettings`
+
 ## 1.0.3
 
 * Fix goldens after GitHub changed documentation URL

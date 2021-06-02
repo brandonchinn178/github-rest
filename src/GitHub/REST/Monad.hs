@@ -17,7 +17,7 @@ the capability to query the GitHub REST API.
 module GitHub.REST.Monad
   ( MonadGitHubREST(..)
   , GitHubT
-  , GitHubState(..)
+  , GitHubSettings(..)
   , runGitHubT
   ) where
 
@@ -55,7 +55,7 @@ import GitHub.REST.KeyValue (kvToValue)
 import GitHub.REST.Monad.Class
 import GitHub.REST.PageLinks (parsePageLinks)
 
-data GitHubState = GitHubState
+data GitHubSettings = GitHubSettings
   { token      :: Maybe Token
     -- ^ The token to use to authenticate with the API.
   , userAgent  :: ByteString
@@ -67,7 +67,7 @@ data GitHubState = GitHubState
 
 -- | A simple monad that can run REST calls.
 newtype GitHubT m a = GitHubT
-  { unGitHubT :: ReaderT (Manager, GitHubState) m a
+  { unGitHubT :: ReaderT (Manager, GitHubSettings) m a
   }
   deriving
     ( Functor
@@ -85,7 +85,7 @@ instance MonadUnliftIO m => MonadUnliftIO (GitHubT m) where
 
 instance MonadIO m => MonadGitHubREST (GitHubT m) where
   queryGitHubPage' ghEndpoint = do
-    (manager, GitHubState{..}) <- GitHubT ask
+    (manager, GitHubSettings{..}) <- GitHubT ask
 
     let request = (parseRequest_ $ Text.unpack $ ghUrl <> endpointPath ghEndpoint)
           { method = renderMethod ghEndpoint
@@ -119,7 +119,7 @@ instance MonadIO m => MonadGitHubREST (GitHubT m) where
 --
 -- The token will be sent with each API request -- see 'Token'. The user agent is also required for
 -- each API request -- see https://developer.github.com/v3/#user-agent-required.
-runGitHubT :: MonadIO m => GitHubState -> GitHubT m a -> m a
+runGitHubT :: MonadIO m => GitHubSettings -> GitHubT m a -> m a
 runGitHubT state action = do
   manager <- liftIO $ newManager tlsManagerSettings
   (`runReaderT` (manager, state)) . unGitHubT $ action
