@@ -2,3 +2,8 @@ resolver: lts-16.31
 
 ghc-options:
   '$locals': -Werror
+
+extra-deps:
+  # https://github.com/fourmolu/fourmolu/pull/64#issuecomment-798773569
+  - github: fourmolu/fourmolu
+    commit: 9129edc7d409ad7b6bca53828b8c19dbe82164ca
