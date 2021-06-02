@@ -16,6 +16,7 @@ import Data.Either (isLeft)
 import Data.List (uncons)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
+import qualified Data.Text as Text
 import GHC.Exts (fromList)
 import Network.HTTP.Types (StdMethod(..))
 import Test.Tasty (TestTree, testGroup)
@@ -104,12 +105,12 @@ runMockREST f results = (`evalStateT` results) $ unMockREST $ f ghEndpoint
       }
 
 instance MonadGitHubREST MockREST where
-  queryGitHubPage' _ = do
+  queryGitHubPage _ = do
     (curr, rest) <- fromMaybe (error "Did you forget to mock a query?") . uncons <$> MockREST get
     MockREST $ put rest
 
     case curr of
-      Left e -> return $ Left (e, e)
+      Left e -> error $ "Mocked error: " ++ Text.unpack e
       Right v -> do
         result <- case fromJSON (String v) <|> fromJSON (Array $ fromList [String v]) of
           Success a -> return a
@@ -119,4 +120,4 @@ instance MonadGitHubREST MockREST where
               [] -> mempty
               _ -> mempty { pageNext = Just "/" }
 
-        return $ Right (result, pageLinks)
+        return (result, pageLinks)

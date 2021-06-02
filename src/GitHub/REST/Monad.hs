@@ -105,7 +105,7 @@ instance MonadUnliftIO m => MonadUnliftIO (GitHubT m) where
       inner (run . unGitHubT)
 
 instance MonadIO m => MonadGitHubREST (GitHubT m) where
-  queryGitHubPage' ghEndpoint = do
+  queryGitHubPage ghEndpoint = do
     GitHubManager{..} <- GitHubT ask
     let GitHubSettings{..} = ghSettings
 
@@ -130,12 +130,17 @@ instance MonadIO m => MonadGitHubREST (GitHubT m) where
         nonEmptyBody = if ByteStringL.null body then encode () else body
         pageLinks = maybe mempty parsePageLinks . lookupHeader "Link" $ response
 
-    return $ case eitherDecode nonEmptyBody of
-      Right payload -> Right (payload, pageLinks)
-      Left e -> Left (Text.pack e, Text.decodeUtf8 $ ByteStringL.toStrict body)
+    case eitherDecode nonEmptyBody of
+      Right payload -> return (payload, pageLinks)
+      Left e -> do
+        let message = Text.pack e
+            bodyText = Text.decodeUtf8 $ ByteStringL.toStrict body
+
+        error $ "Could not decode response:\nmessage = " ++ ellipses message ++ "\nresponse = " ++ ellipses bodyText
     where
       ghUrl = "https://api.github.com"
       lookupHeader headerName = fmap Text.decodeUtf8 . lookup headerName . responseHeaders
+      ellipses s = if Text.length s > 100 then take 100 (Text.unpack s) ++ "..." else Text.unpack s
 
 -- | Run the given 'GitHubT' action with the given token and user agent.
 --
