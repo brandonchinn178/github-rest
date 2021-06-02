@@ -15,9 +15,19 @@ the capability to query the GitHub REST API.
 {-# LANGUAGE TupleSections #-}
 
 module GitHub.REST.Monad
-  ( MonadGitHubREST(..)
+  ( -- * MonadGitHubREST API
+    MonadGitHubREST(..)
+  , queryGitHubPageIO
+
+    -- * GitHubManager
+  , GitHubManager
+  , initGitHubManager
+
+    -- * GitHubSettings
+  , GitHubSettings(..)
+
+    -- * GitHubT
   , GitHubT
-  , GitHubState(..)
   , runGitHubT
   ) where
 
@@ -28,7 +38,7 @@ import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.IO.Unlift (MonadUnliftIO(..))
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.Trans (MonadTrans)
-import Data.Aeson (eitherDecode, encode)
+import Data.Aeson (FromJSON, eitherDecode, encode)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as ByteStringL
 #if !MIN_VERSION_base(4,11,0)
@@ -53,9 +63,11 @@ import GitHub.REST.Auth (Token, fromToken)
 import GitHub.REST.Endpoint (GHEndpoint(..), endpointPath, renderMethod)
 import GitHub.REST.KeyValue (kvToValue)
 import GitHub.REST.Monad.Class
-import GitHub.REST.PageLinks (parsePageLinks)
+import GitHub.REST.PageLinks (PageLinks, parsePageLinks)
 
-data GitHubState = GitHubState
+{- GitHubSettings -}
+
+data GitHubSettings = GitHubSettings
   { token      :: Maybe Token
     -- ^ The token to use to authenticate with the API.
   , userAgent  :: ByteString
@@ -65,9 +77,65 @@ data GitHubState = GitHubState
     -- API endpoints, "v3" should be sufficient here. See https://developer.github.com/v3/media/
   }
 
+{- GitHubManager -}
+
+data GitHubManager = GitHubManager
+  { ghSettings :: GitHubSettings
+  , ghManager  :: Manager
+  }
+
+-- | Initialize a 'GitHubManager'.
+initGitHubManager :: GitHubSettings -> IO GitHubManager
+initGitHubManager ghSettings = do
+  ghManager <- newManager tlsManagerSettings
+  return GitHubManager{..}
+
+-- | Same as 'queryGitHubPage', except explicitly taking in 'GitHubManager' and running
+-- in IO.
+--
+-- Useful for implementing 'MonadGitHubREST' outside of 'GitHubT'.
+queryGitHubPageIO :: FromJSON a => GitHubManager -> GHEndpoint -> IO (a, PageLinks)
+queryGitHubPageIO GitHubManager{..} ghEndpoint = do
+  let GitHubSettings{..} = ghSettings
+
+  let request = (parseRequest_ $ Text.unpack $ ghUrl <> endpointPath ghEndpoint)
+        { method = renderMethod ghEndpoint
+        , requestHeaders =
+            [ (hAccept, "application/vnd.github." <> apiVersion <> "+json")
+            , (hUserAgent, userAgent)
+            ] ++ maybe [] ((:[]) . (hAuthorization,) . fromToken) token
+        , requestBody = RequestBodyLBS $ encode $ kvToValue $ ghData ghEndpoint
+        , checkResponse = throwErrorStatusCodes
+        }
+
+  response <- httpLbs request ghManager
+
+  let body = responseBody response
+      -- empty body always errors when decoding, even if the end user doesn't care about the
+      -- result, like creating a branch, when the endpoint doesn't return anything.
+      --
+      -- In this case, pretend like the server sent back an encoded version of the unit type,
+      -- so that `queryGitHub endpoint` would be typed to `m ()`.
+      nonEmptyBody = if ByteStringL.null body then encode () else body
+      pageLinks = maybe mempty parsePageLinks . lookupHeader "Link" $ response
+
+  case eitherDecode nonEmptyBody of
+    Right payload -> return (payload, pageLinks)
+    Left e -> do
+      let message = Text.pack e
+          bodyText = Text.decodeUtf8 $ ByteStringL.toStrict body
+
+      error $ "Could not decode response:\nmessage = " ++ ellipses message ++ "\nresponse = " ++ ellipses bodyText
+  where
+    ghUrl = "https://api.github.com"
+    lookupHeader headerName = fmap Text.decodeUtf8 . lookup headerName . responseHeaders
+    ellipses s = if Text.length s > 100 then take 100 (Text.unpack s) ++ "..." else Text.unpack s
+
+{- GitHubT -}
+
 -- | A simple monad that can run REST calls.
 newtype GitHubT m a = GitHubT
-  { unGitHubT :: ReaderT (Manager, GitHubState) m a
+  { unGitHubT :: ReaderT GitHubManager m a
   }
   deriving
     ( Functor
@@ -84,42 +152,15 @@ instance MonadUnliftIO m => MonadUnliftIO (GitHubT m) where
       inner (run . unGitHubT)
 
 instance MonadIO m => MonadGitHubREST (GitHubT m) where
-  queryGitHubPage' ghEndpoint = do
-    (manager, GitHubState{..}) <- GitHubT ask
-
-    let request = (parseRequest_ $ Text.unpack $ ghUrl <> endpointPath ghEndpoint)
-          { method = renderMethod ghEndpoint
-          , requestHeaders =
-              [ (hAccept, "application/vnd.github." <> apiVersion <> "+json")
-              , (hUserAgent, userAgent)
-              ] ++ maybe [] ((:[]) . (hAuthorization,) . fromToken) token
-          , requestBody = RequestBodyLBS $ encode $ kvToValue $ ghData ghEndpoint
-          , checkResponse = throwErrorStatusCodes
-          }
-
-    response <- liftIO $ httpLbs request manager
-
-    let body = responseBody response
-        -- empty body always errors when decoding, even if the end user doesn't care about the
-        -- result, like creating a branch, when the endpoint doesn't return anything.
-        --
-        -- In this case, pretend like the server sent back an encoded version of the unit type,
-        -- so that `queryGitHub endpoint` would be typed to `m ()`.
-        nonEmptyBody = if ByteStringL.null body then encode () else body
-        pageLinks = maybe mempty parsePageLinks . lookupHeader "Link" $ response
-
-    return $ case eitherDecode nonEmptyBody of
-      Right payload -> Right (payload, pageLinks)
-      Left e -> Left (Text.pack e, Text.decodeUtf8 $ ByteStringL.toStrict body)
-    where
-      ghUrl = "https://api.github.com"
-      lookupHeader headerName = fmap Text.decodeUtf8 . lookup headerName . responseHeaders
+  queryGitHubPage ghEndpoint = do
+    manager <- GitHubT ask
+    liftIO $ queryGitHubPageIO manager ghEndpoint
 
 -- | Run the given 'GitHubT' action with the given token and user agent.
 --
 -- The token will be sent with each API request -- see 'Token'. The user agent is also required for
 -- each API request -- see https://developer.github.com/v3/#user-agent-required.
-runGitHubT :: MonadIO m => GitHubState -> GitHubT m a -> m a
-runGitHubT state action = do
-  manager <- liftIO $ newManager tlsManagerSettings
-  (`runReaderT` (manager, state)) . unGitHubT $ action
+runGitHubT :: MonadIO m => GitHubSettings -> GitHubT m a -> m a
+runGitHubT settings action = do
+  manager <- liftIO $ initGitHubManager settings
+  (`runReaderT` manager) . unGitHubT $ action

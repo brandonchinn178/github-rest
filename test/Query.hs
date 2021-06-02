@@ -30,7 +30,7 @@ tests =
 goldens :: TestName -> String -> GitHubT IO ByteString -> TestTree
 goldens name fp action = goldenVsString name ("test/goldens/" ++ fp) $ runGitHubT state action
   where
-    state = GitHubState
+    state = GitHubSettings
       { token = Nothing
       , userAgent = "github-rest"
       , apiVersion = "v3"
