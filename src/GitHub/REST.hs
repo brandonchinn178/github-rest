@@ -1,4 +1,4 @@
-{-|
+{- |
 Module      :  GitHub.REST
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental
@@ -6,38 +6,44 @@ Portability :  portable
 
 Definitions for querying the GitHub REST API. See README.md for an example.
 -}
-
-module GitHub.REST
-  (
+module GitHub.REST (
   -- * Monad transformer and type-class for querying the GitHub REST API
-    MonadGitHubREST(..)
-  , GitHubT
-  , GitHubSettings(..)
-  , runGitHubT
+  MonadGitHubREST (..),
+  GitHubT,
+  GitHubSettings (..),
+  runGitHubT,
+
   -- * GitHub authentication
-  , Token(..)
+  Token (..),
+
   -- * GitHub Endpoints
-  , GHEndpoint(..)
-  , GitHubData
-  , EndpointVals
+  GHEndpoint (..),
+  GitHubData,
+  EndpointVals,
+
   -- * KeyValue pairs
-  , KeyValue(..)
+  KeyValue (..),
+
   -- * Helpers
-  , githubTry
-  , githubTry'
-  , (.:)
+  githubTry,
+  githubTry',
+  (.:),
+
   -- * Re-exports
-  , StdMethod(..)
-  ) where
+  StdMethod (..),
+) where
 
 import Control.Monad.IO.Unlift (MonadUnliftIO)
-import Data.Aeson (FromJSON, Value(..), decode, withObject)
+import Data.Aeson (FromJSON, Value (..), decode, withObject)
 import Data.Aeson.Types (parseEither, parseField)
 import qualified Data.ByteString.Lazy as ByteStringL
 import Data.Text (Text)
-import Network.HTTP.Client
-    (HttpException(..), HttpExceptionContent(..), Response(..))
-import Network.HTTP.Types (Status, StdMethod(..), status422)
+import Network.HTTP.Client (
+  HttpException (..),
+  HttpExceptionContent (..),
+  Response (..),
+ )
+import Network.HTTP.Types (Status, StdMethod (..), status422)
 import UnliftIO.Exception (handleJust)
 
 import GitHub.REST.Auth
@@ -47,12 +53,13 @@ import GitHub.REST.Monad
 
 {- HTTP exception handling -}
 
--- | Handle 422 exceptions thrown by the GitHub REST API.
---
--- Most client errors are 422, since we should always be sending valid JSON. If an endpoint
--- throws different error codes, use githubTry'.
---
--- https://developer.github.com/v3/#client-errors
+{- | Handle 422 exceptions thrown by the GitHub REST API.
+
+ Most client errors are 422, since we should always be sending valid JSON. If an endpoint
+ throws different error codes, use githubTry'.
+
+ https://developer.github.com/v3/#client-errors
+-}
 githubTry :: MonadUnliftIO m => m a -> m (Either Value a)
 githubTry = githubTry' status422
 

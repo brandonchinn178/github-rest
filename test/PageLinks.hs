@@ -5,6 +5,7 @@
 module PageLinks (tests) where
 
 import Data.Maybe (catMaybes)
+
 #if !MIN_VERSION_base(4,11,0)
 import Data.Monoid ((<>))
 #endif
@@ -19,12 +20,14 @@ tests :: [TestTree]
 tests =
   [ testProperty "parsePageLinks" $
       forAll genPageLinks $ \(pageFirst, pagePrev, pageNext, pageLast) -> do
-        pageLinks <- shuffle $ catMaybes
-          [ mkPageLink "first" <$> pageFirst
-          , mkPageLink "prev" <$> pagePrev
-          , mkPageLink "next" <$> pageNext
-          , mkPageLink "last" <$> pageLast
-          ]
+        pageLinks <-
+          shuffle $
+            catMaybes
+              [ mkPageLink "first" <$> pageFirst
+              , mkPageLink "prev" <$> pagePrev
+              , mkPageLink "next" <$> pageNext
+              , mkPageLink "last" <$> pageLast
+              ]
 
         return $ parsePageLinks (Text.intercalate ", " pageLinks) === PageLinks{..}
   ]
@@ -37,4 +40,4 @@ genPageLinks = (,,,) <$> genPageLink <*> genPageLink <*> genPageLink <*> genPage
   where
     genPageLink = liftArbitrary $ Text.pack <$> genUrl
     genUrl = ('/' :) <$> listOf (elements urlChars)
-    urlChars = ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'] ++ "-_.~?=+%&/"
+    urlChars = ['a' .. 'z'] ++ ['A' .. 'Z'] ++ ['0' .. '9'] ++ "-_.~?=+%&/"

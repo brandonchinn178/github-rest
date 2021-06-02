@@ -1,4 +1,11 @@
-{-|
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
+
+{- |
 Module      :  GitHub.REST.Monad
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental
@@ -7,60 +14,54 @@ Portability :  portable
 Defines 'GitHubT' and 'MonadGitHubREST', a monad transformer and type class that gives a monad @m@
 the capability to query the GitHub REST API.
 -}
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TupleSections #-}
+module GitHub.REST.Monad (
+  -- * MonadGitHubREST API
+  MonadGitHubREST (..),
+  queryGitHubPageIO,
 
-module GitHub.REST.Monad
-  ( -- * MonadGitHubREST API
-    MonadGitHubREST(..)
-  , queryGitHubPageIO
+  -- * GitHubManager
+  GitHubManager,
+  initGitHubManager,
 
-    -- * GitHubManager
-  , GitHubManager
-  , initGitHubManager
+  -- * GitHubSettings
+  GitHubSettings (..),
 
-    -- * GitHubSettings
-  , GitHubSettings(..)
-
-    -- * GitHubT
-  , GitHubT
-  , runGitHubT
-  ) where
+  -- * GitHubT
+  GitHubT,
+  runGitHubT,
+) where
 
 #if !MIN_VERSION_base(4,13,0)
 import Control.Monad.Fail (MonadFail)
 #endif
-import Control.Monad.IO.Class (MonadIO(..))
-import Control.Monad.IO.Unlift (MonadUnliftIO(..))
+import Control.Monad.IO.Class (MonadIO (..))
+import Control.Monad.IO.Unlift (MonadUnliftIO (..))
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.Trans (MonadTrans)
 import Data.Aeson (FromJSON, eitherDecode, encode)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as ByteStringL
+
 #if !MIN_VERSION_base(4,11,0)
 import Data.Monoid ((<>))
 #endif
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
-import Network.HTTP.Client
-    ( Manager
-    , Request(..)
-    , RequestBody(..)
-    , Response(..)
-    , httpLbs
-    , newManager
-    , parseRequest_
-    , throwErrorStatusCodes
-    )
+import Network.HTTP.Client (
+  Manager,
+  Request (..),
+  RequestBody (..),
+  Response (..),
+  httpLbs,
+  newManager,
+  parseRequest_,
+  throwErrorStatusCodes,
+ )
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types (hAccept, hAuthorization, hUserAgent)
 
 import GitHub.REST.Auth (Token, fromToken)
-import GitHub.REST.Endpoint (GHEndpoint(..), endpointPath, renderMethod)
+import GitHub.REST.Endpoint (GHEndpoint (..), endpointPath, renderMethod)
 import GitHub.REST.KeyValue (kvToValue)
 import GitHub.REST.Monad.Class
 import GitHub.REST.PageLinks (PageLinks, parsePageLinks)
@@ -68,20 +69,20 @@ import GitHub.REST.PageLinks (PageLinks, parsePageLinks)
 {- GitHubSettings -}
 
 data GitHubSettings = GitHubSettings
-  { token      :: Maybe Token
-    -- ^ The token to use to authenticate with the API.
-  , userAgent  :: ByteString
-    -- ^ The user agent to use when interacting with the API: https://developer.github.com/v3/#user-agent-required
-  , apiVersion :: ByteString
-    -- ^ The media type will be sent as: application/vnd.github.VERSION+json. For the standard
+  { -- | The token to use to authenticate with the API.
+    token :: Maybe Token
+  , -- | The user agent to use when interacting with the API: https://developer.github.com/v3/#user-agent-required
+    userAgent :: ByteString
+  , -- | The media type will be sent as: application/vnd.github.VERSION+json. For the standard
     -- API endpoints, "v3" should be sufficient here. See https://developer.github.com/v3/media/
+    apiVersion :: ByteString
   }
 
 {- GitHubManager -}
 
 data GitHubManager = GitHubManager
   { ghSettings :: GitHubSettings
-  , ghManager  :: Manager
+  , ghManager :: Manager
   }
 
 -- | Initialize a 'GitHubManager'.
@@ -90,23 +91,26 @@ initGitHubManager ghSettings = do
   ghManager <- newManager tlsManagerSettings
   return GitHubManager{..}
 
--- | Same as 'queryGitHubPage', except explicitly taking in 'GitHubManager' and running
--- in IO.
---
--- Useful for implementing 'MonadGitHubREST' outside of 'GitHubT'.
+{- | Same as 'queryGitHubPage', except explicitly taking in 'GitHubManager' and running
+ in IO.
+
+ Useful for implementing 'MonadGitHubREST' outside of 'GitHubT'.
+-}
 queryGitHubPageIO :: FromJSON a => GitHubManager -> GHEndpoint -> IO (a, PageLinks)
 queryGitHubPageIO GitHubManager{..} ghEndpoint = do
   let GitHubSettings{..} = ghSettings
 
-  let request = (parseRequest_ $ Text.unpack $ ghUrl <> endpointPath ghEndpoint)
-        { method = renderMethod ghEndpoint
-        , requestHeaders =
-            [ (hAccept, "application/vnd.github." <> apiVersion <> "+json")
-            , (hUserAgent, userAgent)
-            ] ++ maybe [] ((:[]) . (hAuthorization,) . fromToken) token
-        , requestBody = RequestBodyLBS $ encode $ kvToValue $ ghData ghEndpoint
-        , checkResponse = throwErrorStatusCodes
-        }
+  let request =
+        (parseRequest_ $ Text.unpack $ ghUrl <> endpointPath ghEndpoint)
+          { method = renderMethod ghEndpoint
+          , requestHeaders =
+              [ (hAccept, "application/vnd.github." <> apiVersion <> "+json")
+              , (hUserAgent, userAgent)
+              ]
+                ++ maybe [] ((: []) . (hAuthorization,) . fromToken) token
+          , requestBody = RequestBodyLBS $ encode $ kvToValue $ ghData ghEndpoint
+          , checkResponse = throwErrorStatusCodes
+          }
 
   response <- httpLbs request ghManager
 
@@ -156,10 +160,11 @@ instance MonadIO m => MonadGitHubREST (GitHubT m) where
     manager <- GitHubT ask
     liftIO $ queryGitHubPageIO manager ghEndpoint
 
--- | Run the given 'GitHubT' action with the given token and user agent.
---
--- The token will be sent with each API request -- see 'Token'. The user agent is also required for
--- each API request -- see https://developer.github.com/v3/#user-agent-required.
+{- | Run the given 'GitHubT' action with the given token and user agent.
+
+ The token will be sent with each API request -- see 'Token'. The user agent is also required for
+ each API request -- see https://developer.github.com/v3/#user-agent-required.
+-}
 runGitHubT :: MonadIO m => GitHubSettings -> GitHubT m a -> m a
 runGitHubT settings action = do
   manager <- liftIO $ initGitHubManager settings

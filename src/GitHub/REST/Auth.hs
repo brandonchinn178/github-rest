@@ -1,4 +1,8 @@
-{-|
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+
+{- |
 Module      :  GitHub.REST.Auth
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental
@@ -6,20 +10,18 @@ Portability :  portable
 
 Definitions for handling authentication with the GitHub REST API.
 -}
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE OverloadedStrings #-}
+module GitHub.REST.Auth (
+  Token (..),
+  fromToken,
 
-module GitHub.REST.Auth
-  ( Token(..)
-  , fromToken
   -- * Helpers for using JWT tokens with the GitHub API
-  , getJWTToken
-  , loadSigner
-  ) where
+  getJWTToken,
+  loadSigner,
+) where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
+
 #if !MIN_VERSION_base(4,11,0)
 import Data.Monoid ((<>))
 #endif
@@ -31,10 +33,10 @@ import qualified Web.JWT as JWT
 
 -- | The token to use to authenticate with GitHub.
 data Token
-  = AccessToken ByteString
-    -- ^ https://developer.github.com/v3/#authentication
-  | BearerToken ByteString
-    -- ^ https://developer.github.com/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-a-github-app
+  = -- | https://developer.github.com/v3/#authentication
+    AccessToken ByteString
+  | -- | https://developer.github.com/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-a-github-app
+    BearerToken ByteString
   deriving (Show)
 
 fromToken :: Token -> ByteString
@@ -55,12 +57,13 @@ getJWTToken signer appId = mkToken <$> getNow
     signToken = JWT.encodeSigned
 #endif
     mkToken now =
-      let claims = mempty
-            { JWT.iat = JWT.numericDate $ utcTimeToPOSIXSeconds now
-            , JWT.exp = JWT.numericDate $ utcTimeToPOSIXSeconds now + (10 * 60)
-            , JWT.iss = JWT.stringOrURI $ Text.pack $ show appId
-            }
-      in BearerToken . Text.encodeUtf8 $ signToken signer claims
+      let claims =
+            mempty
+              { JWT.iat = JWT.numericDate $ utcTimeToPOSIXSeconds now
+              , JWT.exp = JWT.numericDate $ utcTimeToPOSIXSeconds now + (10 * 60)
+              , JWT.iss = JWT.stringOrURI $ Text.pack $ show appId
+              }
+       in BearerToken . Text.encodeUtf8 $ signToken signer claims
     -- lose a second in the case of rounding
     -- https://github.community/t5/GitHub-API-Development-and/quot-Expiration-time-claim-exp-is-too-far-in-the-future-quot/m-p/20457/highlight/true#M1127
     getNow = addUTCTime (-1) <$> getCurrentTime

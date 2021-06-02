@@ -73,9 +73,10 @@ jobs:
 
             stack build "${STACK_ARGS[@]}"
 
-            # build hlint/stylish-haskell for cache
+            # build linters for cache
             if [[ -n "${CI_LATEST}" ]]; then
-                stack build hlint stylish-haskell
+                stack install -j1 hlint fourmolu
+                echo 'export PATH=~/.local/bin:$PATH' >> "${BASH_ENV}"
             fi
       - save_cache:
           key: *cache_key
@@ -110,7 +111,8 @@ jobs:
                   set +e
                   STATUS=0
                   scripts/hlint.sh || STATUS=1
-                  scripts/stylish-haskell.sh || STATUS=1
+                  scripts/fourmolu.sh
+                  git diff --exit-code -- '*.hs' || STATUS=1
                   exit "${STATUS}"
 
       # test
