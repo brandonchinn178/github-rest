@@ -1,0 +1,5 @@
+resolver: lts-17.14
+
+flags:
+  cryptonite:
+    use_target_attributes: false
