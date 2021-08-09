@@ -38,6 +38,7 @@ import Control.Monad.Trans (MonadTrans)
 import Data.Aeson (FromJSON, eitherDecode, encode)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as ByteStringL
+import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import Network.HTTP.Client (
@@ -52,6 +53,7 @@ import Network.HTTP.Client (
  )
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types (hAccept, hAuthorization, hUserAgent)
+import UnliftIO.Exception (Exception, throwIO)
 
 #if !MIN_VERSION_base(4,13,0)
 import Control.Monad.Fail (MonadFail)
@@ -125,15 +127,23 @@ queryGitHubPageIO GitHubManager{..} ghEndpoint = do
 
   case eitherDecode nonEmptyBody of
     Right payload -> return (payload, pageLinks)
-    Left e -> do
-      let message = Text.pack e
-          bodyText = Text.decodeUtf8 $ ByteStringL.toStrict body
-
-      error $ "Could not decode response:\nmessage = " ++ ellipses message ++ "\nresponse = " ++ ellipses bodyText
+    Left e ->
+      throwIO $
+        DecodeError
+          { decodeErrorMessage = Text.pack e
+          , decodeErrorResponse = Text.decodeUtf8 $ ByteStringL.toStrict body
+          }
   where
     ghUrl = "https://api.github.com"
     lookupHeader headerName = fmap Text.decodeUtf8 . lookup headerName . responseHeaders
-    ellipses s = if Text.length s > 100 then take 100 (Text.unpack s) ++ "..." else Text.unpack s
+
+data DecodeError = DecodeError
+  { decodeErrorMessage :: Text
+  , decodeErrorResponse :: Text
+  }
+  deriving (Show)
+
+instance Exception DecodeError
 
 {- GitHubT -}
 
