@@ -31,9 +31,6 @@ module GitHub.REST.Monad (
   runGitHubT,
 ) where
 
-#if !MIN_VERSION_base(4,13,0)
-import Control.Monad.Fail (MonadFail)
-#endif
 import Control.Monad.IO.Class (MonadIO (..))
 import Control.Monad.IO.Unlift (MonadUnliftIO (..))
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
@@ -41,10 +38,6 @@ import Control.Monad.Trans (MonadTrans)
 import Data.Aeson (FromJSON, eitherDecode, encode)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as ByteStringL
-
-#if !MIN_VERSION_base(4,11,0)
-import Data.Monoid ((<>))
-#endif
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import Network.HTTP.Client (
@@ -59,6 +52,13 @@ import Network.HTTP.Client (
  )
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types (hAccept, hAuthorization, hUserAgent)
+
+#if !MIN_VERSION_base(4,13,0)
+import Control.Monad.Fail (MonadFail)
+#endif
+#if !MIN_VERSION_base(4,11,0)
+import Data.Monoid ((<>))
+#endif
 
 import GitHub.REST.Auth (Token, fromToken)
 import GitHub.REST.Endpoint (GHEndpoint (..), endpointPath, renderMethod)
