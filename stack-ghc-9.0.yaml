@@ -1,0 +1,8 @@
+resolver: nightly-2021-10-07
+
+flags:
+  cryptonite:
+    use_target_attributes: false
+
+ghc-options:
+  '$locals': -Werror
