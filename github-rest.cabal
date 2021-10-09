@@ -4,7 +4,7 @@ cabal-version: >= 1.10
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 800fa4f169210c967d917bacbc61e12d696ad192e8744af6798c68552fd8c05c
+-- hash: 4cc2d0923c78c3d09f5416993dd657eba7d218765d76c483637d42199be5994d
 
 name:           github-rest
 version:        1.1.0
@@ -46,7 +46,7 @@ library
       src
   ghc-options: -Wall
   build-depends:
-      aeson >=1.1.2.0 && <1.6
+      aeson >=1.1.2.0 && <2.1
     , base >=4.9 && <5
     , bytestring >=0.10.8.1 && <0.11
     , http-client >=0.5.13.1 && <0.8
@@ -80,7 +80,7 @@ test-suite github-rest-test
       test
   ghc-options: -Wall
   build-depends:
-      aeson >=1.1.2.0 && <1.6
+      aeson >=1.1.2.0 && <2.1
     , aeson-qq
     , base >=4.9 && <5
     , bytestring >=0.10.8.1 && <0.11
