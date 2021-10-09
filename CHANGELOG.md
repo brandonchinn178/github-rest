@@ -1,5 +1,9 @@
 ## Upcoming
 
+## 1.1.1
+
+* Add support for `aeson-2.0.0.0`
+
 ## 1.1.0
 
 * Rename `GitHubState` to `GitHubSettings`
