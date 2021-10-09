@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {- |
 Module      :  GitHub.REST
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
@@ -46,6 +48,10 @@ import Network.HTTP.Client (
 import Network.HTTP.Types (Status, StdMethod (..), status422)
 import UnliftIO.Exception (handleJust)
 
+#if MIN_VERSION_aeson(2,0,0)
+import Data.Aeson.Key (fromText)
+#endif
+
 import GitHub.REST.Auth
 import GitHub.REST.Endpoint
 import GitHub.REST.KeyValue
@@ -77,4 +83,9 @@ githubTry' status = handleJust statusException (return . Left) . fmap Right
 (.:) :: FromJSON a => Value -> Text -> a
 (.:) v key = either error id $ parseEither parseObject v
   where
-    parseObject = withObject "parseObject" (`parseField` key)
+    parseObject = withObject "parseObject" (`parseField` fromText key)
+
+#if !MIN_VERSION_aeson(2,0,0)
+fromText :: Text -> Text
+fromText = id
+#endif
