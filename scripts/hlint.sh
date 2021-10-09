@@ -2,12 +2,18 @@
 #
 # Runs HLint and errors if any hints are found.
 
-set -eo pipefail
+set -eu -o pipefail
+
+builtin cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 ARGS=("$@")
-if [[ "${#ARGS}" == 0 ]]; then
+if [[ "${#ARGS[@]}" == 0 ]]; then
     ARGS+=(.)
 fi
 
-stack build --stack-yaml stack-linters.yaml hlint
-stack exec -- hlint "${ARGS[@]}"
+HLINT=~/.local/bin/hlint
+if [[ ! -f "$HLINT" ]]; then
+    stack install --stack-yaml stack-linters.yaml hlint
+fi
+
+"$HLINT" "${ARGS[@]}"
