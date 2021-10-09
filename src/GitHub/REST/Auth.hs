@@ -25,6 +25,7 @@ import qualified Data.ByteString as ByteString
 #if !MIN_VERSION_base(4,11,0)
 import Data.Monoid ((<>))
 #endif
+import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import Data.Time (addUTCTime, getCurrentTime)
@@ -51,11 +52,6 @@ type AppId = Int
 getJWTToken :: JWT.Signer -> AppId -> IO Token
 getJWTToken signer appId = mkToken <$> getNow
   where
-#if MIN_VERSION_jwt(0,10,0)
-    signToken = flip JWT.encodeSigned mempty
-#else
-    signToken = JWT.encodeSigned
-#endif
     mkToken now =
       let claims =
             mempty
@@ -67,6 +63,13 @@ getJWTToken signer appId = mkToken <$> getNow
     -- lose a second in the case of rounding
     -- https://github.community/t5/GitHub-API-Development-and/quot-Expiration-time-claim-exp-is-too-far-in-the-future-quot/m-p/20457/highlight/true#M1127
     getNow = addUTCTime (-1) <$> getCurrentTime
+
+signToken :: JWT.Signer -> JWT.JWTClaimsSet -> Text
+#if MIN_VERSION_jwt(0,10,0)
+signToken = flip JWT.encodeSigned mempty
+#else
+signToken = JWT.encodeSigned
+#endif
 
 -- | Load a RSA private key as a Signer from the given file path.
 loadSigner :: FilePath -> IO JWT.Signer
