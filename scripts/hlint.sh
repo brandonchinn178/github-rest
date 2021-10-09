@@ -9,5 +9,5 @@ if [[ "${#ARGS}" == 0 ]]; then
     ARGS+=(.)
 fi
 
-stack build hlint
+stack build --stack-yaml stack-linters.yaml hlint
 stack exec -- hlint "${ARGS[@]}"

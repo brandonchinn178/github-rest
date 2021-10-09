@@ -75,7 +75,7 @@ jobs:
 
             # build linters for cache
             if [[ -n "${CI_LATEST}" ]]; then
-                stack install -j1 hlint fourmolu
+                stack install -j1 --stack-yaml stack-linters.yaml hlint fourmolu
                 echo 'export PATH=~/.local/bin:$PATH' >> "${BASH_ENV}"
             fi
       - save_cache:
