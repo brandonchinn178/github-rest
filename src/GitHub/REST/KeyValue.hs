@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 
@@ -21,6 +22,10 @@ import Data.Scientific (floatingOrInteger)
 import Data.Text (Text)
 import qualified Data.Text as Text
 
+#if MIN_VERSION_aeson(2,0,0)
+import Data.Aeson.Key (fromText)
+#endif
+
 -- | A type representing a key-value pair.
 data KeyValue where
   (:=) :: (Show v, ToJSON v) => Text -> v -> KeyValue
@@ -35,7 +40,7 @@ instance {-# OVERLAPS #-} ToJSON [KeyValue] where
 
 -- | Convert a 'KeyValue' into a 'Pair'.
 toPair :: KeyValue -> Pair
-toPair (k := v) = (k, toJSON v)
+toPair (k := v) = (fromText k, toJSON v)
 
 -- | Convert the given KeyValues into a JSON Object.
 kvToValue :: [KeyValue] -> Value
@@ -51,3 +56,10 @@ kvToText (k := v) = (k, v')
       Bool b -> Text.pack . show $ b
       _ -> error $ "Could not convert value: " ++ show v
     prettyNum x = either show show (floatingOrInteger x :: Either Double Integer)
+
+{- Helpers -}
+
+#if !MIN_VERSION_aeson(2,0,0)
+fromText :: Text -> Text
+fromText = id
+#endif
