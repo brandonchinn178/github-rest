@@ -60,7 +60,7 @@ jobs:
             cat cache-key.txt
       - run:
           name: Install system dependencies
-          command: yum install -y zlib-devel
+          command: yum install -y ncurses-devel zlib-devel
       - restore_cache:
           key: *cache_key
       - run:
