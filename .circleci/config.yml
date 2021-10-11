@@ -60,7 +60,7 @@ jobs:
             cat cache-key.txt
       - run:
           name: Install system dependencies
-          command: yum install -y zlib-devel
+          command: yum install -y ncurses-devel zlib-devel
       - restore_cache:
           key: *cache_key
       - run:
@@ -75,7 +75,7 @@ jobs:
 
             # build linters for cache
             if [[ -n "${CI_LATEST}" ]]; then
-                stack install -j1 hlint fourmolu
+                stack install -j1 --stack-yaml stack-linters.yaml hlint fourmolu
                 echo 'export PATH=~/.local/bin:$PATH' >> "${BASH_ENV}"
             fi
       - save_cache:

@@ -3,18 +3,7 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages:
-- completed:
-    size: 139453
-    url: https://github.com/fourmolu/fourmolu/archive/9129edc7d409ad7b6bca53828b8c19dbe82164ca.tar.gz
-    name: fourmolu
-    version: 0.3.0.0
-    sha256: b10b5f0b5c910802a89a86874ca7fcb31a7b0914c87b15f205ef70e8a4bc50ee
-    pantry-tree:
-      size: 117253
-      sha256: 1cebf53b3980d303abfc5a86d4c5db65aa9d995defd5862f1c26cc857429a0e7
-  original:
-    url: https://github.com/fourmolu/fourmolu/archive/9129edc7d409ad7b6bca53828b8c19dbe82164ca.tar.gz
+packages: []
 snapshots:
 - completed:
     size: 534126
