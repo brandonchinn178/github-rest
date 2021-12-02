@@ -71,7 +71,7 @@ jobs:
                 STACK_ARGS+=(--haddock)
             fi
 
-            stack build "${STACK_ARGS[@]}"
+            stack build -j1 "${STACK_ARGS[@]}"
 
             # build linters for cache
             if [[ -n "${CI_LATEST}" ]]; then
@@ -159,6 +159,9 @@ workflows:
       - run_build_and_test:
           name: test_latest
           latest: true
+      - run_build_and_test:
+          name: test_ghc_9.2
+          stack_yaml: stack-ghc-9.2.yaml
       - run_build_and_test:
           name: test_ghc_9.0
           stack_yaml: stack-ghc-9.0.yaml
