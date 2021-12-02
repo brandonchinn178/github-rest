@@ -71,7 +71,7 @@ jobs:
                 STACK_ARGS+=(--haddock)
             fi
 
-            stack build "${STACK_ARGS[@]}"
+            stack build -j1 "${STACK_ARGS[@]}"
 
             # build linters for cache
             if [[ -n "${CI_LATEST}" ]]; then
