@@ -1,13 +1,8 @@
-resolver: nightly-2021-10-07
+resolver: nightly-2021-11-28
 
 extra-deps:
-  - aeson-2.0.0.0
-  - # https://github.com/sol/aeson-qq/pull/19
-    github: sol/aeson-qq
-    commit: 9061030a5e71c7061da2d1012d31866de4f9d2ed
-  - # https://bitbucket.org/puffnfresh/haskell-jwt/issues/4/fix-for-aeson-2000
-    git: https://bitbucket.org/brandon-leapyear/haskell-jwt.git
-    commit: b99a2d2cf71917bb7e912cd007ccc94230cc9832
+  - aeson-2.0.2.0
+  - jwt-0.10.1
 
 flags:
   cryptonite:
