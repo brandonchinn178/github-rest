@@ -6,7 +6,8 @@ extra-deps:
   - attoparsec-0.14.2
   - base-compat-0.12.1
   - base-compat-batteries-0.12.1
-  - jwt-0.10.1
+  - cryptostore-0.2.1.0
+  - jwt-0.11.0
   # https://github.com/haskell-foundation/foundation/pull/555
   - github: haskell-foundation/foundation
     commit: 0bb195e1fea06d144dafc5af9a0ff79af0a5f4a0
