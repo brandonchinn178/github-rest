@@ -32,6 +32,12 @@ import Data.Time (addUTCTime, getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import qualified Web.JWT as JWT
 
+#if MIN_VERSION_jwt(0,11,0)
+type EncodeSigner = JWT.EncodeSigner
+#else
+type EncodeSigner = JWT.Signer
+#endif
+
 -- | The token to use to authenticate with GitHub.
 data Token
   = -- | https://developer.github.com/v3/#authentication
@@ -49,7 +55,7 @@ fromToken = \case
 type AppId = Int
 
 -- | Create a JWT token that expires in 10 minutes.
-getJWTToken :: JWT.Signer -> AppId -> IO Token
+getJWTToken :: EncodeSigner -> AppId -> IO Token
 getJWTToken signer appId = mkToken <$> getNow
   where
     mkToken now =
@@ -64,7 +70,7 @@ getJWTToken signer appId = mkToken <$> getNow
     -- https://github.community/t5/GitHub-API-Development-and/quot-Expiration-time-claim-exp-is-too-far-in-the-future-quot/m-p/20457/highlight/true#M1127
     getNow = addUTCTime (-1) <$> getCurrentTime
 
-signToken :: JWT.Signer -> JWT.JWTClaimsSet -> Text
+signToken :: EncodeSigner -> JWT.JWTClaimsSet -> Text
 #if MIN_VERSION_jwt(0,10,0)
 signToken = flip JWT.encodeSigned mempty
 #else
@@ -72,8 +78,14 @@ signToken = JWT.encodeSigned
 #endif
 
 -- | Load a RSA private key as a Signer from the given file path.
-loadSigner :: FilePath -> IO JWT.Signer
+loadSigner :: FilePath -> IO EncodeSigner
 loadSigner file = maybe badSigner return . readSigner =<< ByteString.readFile file
   where
     badSigner = fail $ "Not a valid RSA private key file: " ++ file
-    readSigner = fmap JWT.RSAPrivateKey . JWT.readRsaSecret
+    readSigner = fmap toEncodeRSAPrivateKey . JWT.readRsaSecret
+
+#if MIN_VERSION_jwt(0,11,0)
+    toEncodeRSAPrivateKey = JWT.EncodeRSAPrivateKey
+#else
+    toEncodeRSAPrivateKey = JWT.RSAPrivateKey
+#endif
