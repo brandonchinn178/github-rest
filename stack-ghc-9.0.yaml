@@ -1,9 +1,4 @@
-resolver: nightly-2021-11-28
-
-extra-deps:
-  - aeson-2.0.2.0
-  - cryptostore-0.2.1.0
-  - jwt-0.11.0
+resolver: lts-19.11
 
 flags:
   cryptonite:
