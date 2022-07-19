@@ -35,18 +35,18 @@ main = do
 
   runGitHubT state $ do
 
-    -- Get information for the "master" branch
+    -- Get information for the "main" branch
     -- https://developer.github.com/v3/git/refs/#get-a-single-reference
     ref <- queryGitHub GHEndpoint
       { method = GET
         -- Colon-prefixed components in the endpoint will be interpolated by
         -- the values in 'endpointVals'.
-        -- In this case, "/repos/alice/my-project/git/refs/heads/master"
+        -- In this case, "/repos/alice/my-project/git/refs/heads/main"
       , endpoint = "/repos/:owner/:repo/git/refs/:ref"
       , endpointVals =
         [ "owner" := "alice"
         , "repo" := "my-project"
-        , "ref" := "heads/master"
+        , "ref" := "heads/main"
         ]
       , ghData = []
       }
