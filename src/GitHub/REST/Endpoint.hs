@@ -35,15 +35,15 @@ type GitHubData = [KeyValue]
 -- | A call to a GitHub API endpoint.
 data GHEndpoint = GHEndpoint
   { method :: StdMethod
-  , -- | The GitHub API endpoint, with colon-prefixed components that will be replaced; e.g.
-    -- @"\/users\/:username\/repos"@
-    endpoint :: Text
-  , -- | Key-value pairs to replace colon-prefixed components in 'endpoint'; e.g.
-    -- @[ "username" := ("alice" :: Text) ]@
-    endpointVals :: EndpointVals
-  , -- | Key-value pairs to send in the request body; e.g.
-    -- @[ "sort" := ("created" :: Text), "direction" := ("asc" :: Text) ]@
-    ghData :: GitHubData
+  , endpoint :: Text
+  -- ^ The GitHub API endpoint, with colon-prefixed components that will be replaced; e.g.
+  -- @"\/users\/:username\/repos"@
+  , endpointVals :: EndpointVals
+  -- ^ Key-value pairs to replace colon-prefixed components in 'endpoint'; e.g.
+  -- @[ "username" := ("alice" :: Text) ]@
+  , ghData :: GitHubData
+  -- ^ Key-value pairs to send in the request body; e.g.
+  -- @[ "sort" := ("created" :: Text), "direction" := ("asc" :: Text) ]@
   }
 
 -- | Return the endpoint path, populated by the values in 'endpointVals'.
