@@ -1,7 +1,8 @@
 # github-rest
 
-![CircleCI](https://img.shields.io/circleci/build/github/LeapYear/github-rest)
-![Hackage](https://img.shields.io/hackage/v/github-rest)
+[![GitHub Actions](https://img.shields.io/github/workflow/status/LeapYear/github-rest/CI/main)](https://github.com/LeapYear/github-rest/actions?query=branch%3Amain)
+[![Codecov](https://codecov.io/gh/LeapYear/github-rest/branch/main/graph/badge.svg?token=8TErU2ntw9)](https://codecov.io/gh/LeapYear/github-rest)
+[![Hackage](https://img.shields.io/hackage/v/github-rest)](https://hackage.haskell.org/package/github-rest)
 
 A package providing a more flexible interface to accessing the [GitHub API](https://developer.github.com/v3/).
 Endpoints are created using the `GHEndpoint` constructor and are executed with
