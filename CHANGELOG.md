@@ -1,5 +1,7 @@
 # Unreleased
 
+* Add support for GHC 9.4
+
 # v1.1.2
 
 * Add support for `jwt-0.11.0`

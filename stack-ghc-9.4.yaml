@@ -1,4 +1,4 @@
-resolver: lts-19.33
+resolver: nightly-2022-11-19
 
 flags:
   cryptonite:
