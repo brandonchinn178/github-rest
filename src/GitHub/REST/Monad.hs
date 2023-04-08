@@ -76,8 +76,8 @@ data GitHubSettings = GitHubSettings
   , userAgent :: ByteString
   -- ^ The user agent to use when interacting with the API: https://developer.github.com/v3/#user-agent-required
   , apiVersion :: ByteString
-  -- ^ The media type will be sent as: application/vnd.github.VERSION+json. For the standard
-  -- API endpoints, "v3" should be sufficient here. See https://developer.github.com/v3/media/
+  -- ^ The [version of the GitHub REST API](https://docs.github.com/en/rest/overview/api-versions) being used.
+  -- If left empty, GitHub will assume a default version.
   }
 
 {- GitHubManager -}
@@ -102,13 +102,18 @@ queryGitHubPageIO :: FromJSON a => GitHubManager -> GHEndpoint -> IO (a, PageLin
 queryGitHubPageIO GitHubManager{..} ghEndpoint = do
   let GitHubSettings{..} = ghSettings
 
+  let apiVersionHeader
+        | "" <- apiVersion = []
+        | otherwise = [("X-GitHub-Api-Version", apiVersion)]
+
   let request =
         (parseRequest_ $ Text.unpack $ ghUrl <> endpointPath ghEndpoint)
           { method = renderMethod ghEndpoint
           , requestHeaders =
-              [ (hAccept, "application/vnd.github." <> apiVersion <> "+json")
+              [ (hAccept, "application/vnd.github+json")
               , (hUserAgent, userAgent)
               ]
+                ++ apiVersionHeader
                 ++ maybe [] ((: []) . (hAuthorization,) . fromToken) token
           , requestBody = RequestBodyLBS $ encode $ kvToValue $ ghData ghEndpoint
           , checkResponse = throwErrorStatusCodes
