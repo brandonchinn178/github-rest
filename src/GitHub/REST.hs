@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-{- |
+{-|
 Module      :  GitHub.REST
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental
@@ -59,13 +59,12 @@ import GitHub.REST.Monad
 
 {- HTTP exception handling -}
 
-{- | Handle 422 exceptions thrown by the GitHub REST API.
-
- Most client errors are 422, since we should always be sending valid JSON. If an endpoint
- throws different error codes, use githubTry'.
-
- https://developer.github.com/v3/#client-errors
--}
+-- | Handle 422 exceptions thrown by the GitHub REST API.
+--
+--  Most client errors are 422, since we should always be sending valid JSON. If an endpoint
+--  throws different error codes, use githubTry'.
+--
+--  https://developer.github.com/v3/#client-errors
 githubTry :: (MonadUnliftIO m) => m a -> m (Either Value a)
 githubTry = githubTry' status422
 

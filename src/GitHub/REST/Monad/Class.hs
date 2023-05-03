@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeApplications #-}
 
-{- |
+{-|
 Module      :  GitHub.REST.Monad.Class
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental
@@ -34,37 +34,36 @@ import Data.Monoid ((<>))
 import GitHub.REST.Endpoint
 import GitHub.REST.PageLinks (PageLinks (..))
 
-{- | A type class for monads that can query the GitHub REST API.
-
- Example:
-
- > -- create the "foo" branch
- > queryGitHub GHEndpoint
- >   { method = POST
- >   , endpoint = "/repos/:owner/:repo/git/refs"
- >   , endpointVals =
- >     [ "owner" := "alice"
- >     , "repo" := "my-project"
- >     ]
- >   , ghData =
- >     [ "ref" := "refs/heads/foo"
- >     , "sha" := "1234567890abcdef"
- >     ]
- >   }
-
- It's recommended that you create functions for the API endpoints you're using:
-
- > deleteBranch branch = queryGitHub GHEndpoint
- >   { method = DELETE
- >   , endpoint = "/repos/:owner/:repo/git/refs/:ref"
- >   , endpointVals =
- >     [ "owner" := "alice"
- >     , "repo" := "my-project"
- >     , "ref" := "heads/" <> branch
- >     ]
- >   , ghData = []
- >   }
--}
+-- | A type class for monads that can query the GitHub REST API.
+--
+--  Example:
+--
+--  > -- create the "foo" branch
+--  > queryGitHub GHEndpoint
+--  >   { method = POST
+--  >   , endpoint = "/repos/:owner/:repo/git/refs"
+--  >   , endpointVals =
+--  >     [ "owner" := "alice"
+--  >     , "repo" := "my-project"
+--  >     ]
+--  >   , ghData =
+--  >     [ "ref" := "refs/heads/foo"
+--  >     , "sha" := "1234567890abcdef"
+--  >     ]
+--  >   }
+--
+--  It's recommended that you create functions for the API endpoints you're using:
+--
+--  > deleteBranch branch = queryGitHub GHEndpoint
+--  >   { method = DELETE
+--  >   , endpoint = "/repos/:owner/:repo/git/refs/:ref"
+--  >   , endpointVals =
+--  >     [ "owner" := "alice"
+--  >     , "repo" := "my-project"
+--  >     , "ref" := "heads/" <> branch
+--  >     ]
+--  >   , ghData = []
+--  >   }
 class (Monad m) => MonadGitHubREST m where
   {-# MINIMAL queryGitHubPage #-}
 

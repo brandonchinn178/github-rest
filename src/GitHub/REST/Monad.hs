@@ -5,7 +5,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 
-{- |
+{-|
 Module      :  GitHub.REST.Monad
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental
@@ -93,11 +93,10 @@ initGitHubManager ghSettings = do
   ghManager <- newManager tlsManagerSettings
   return GitHubManager{..}
 
-{- | Same as 'queryGitHubPage', except explicitly taking in 'GitHubManager' and running
- in IO.
-
- Useful for implementing 'MonadGitHubREST' outside of 'GitHubT'.
--}
+-- | Same as 'queryGitHubPage', except explicitly taking in 'GitHubManager' and running
+--  in IO.
+--
+--  Useful for implementing 'MonadGitHubREST' outside of 'GitHubT'.
 queryGitHubPageIO :: (FromJSON a) => GitHubManager -> GHEndpoint -> IO (a, PageLinks)
 queryGitHubPageIO GitHubManager{..} ghEndpoint = do
   let GitHubSettings{..} = ghSettings
@@ -175,11 +174,10 @@ instance (MonadIO m) => MonadGitHubREST (GitHubT m) where
     manager <- GitHubT ask
     liftIO $ queryGitHubPageIO manager ghEndpoint
 
-{- | Run the given 'GitHubT' action with the given token and user agent.
-
- The token will be sent with each API request -- see 'Token'. The user agent is also required for
- each API request -- see https://developer.github.com/v3/#user-agent-required.
--}
+-- | Run the given 'GitHubT' action with the given token and user agent.
+--
+--  The token will be sent with each API request -- see 'Token'. The user agent is also required for
+--  each API request -- see https://developer.github.com/v3/#user-agent-required.
 runGitHubT :: (MonadIO m) => GitHubSettings -> GitHubT m a -> m a
 runGitHubT settings action = do
   manager <- liftIO $ initGitHubManager settings

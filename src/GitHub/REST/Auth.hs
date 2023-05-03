@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-{- |
+{-|
 Module      :  GitHub.REST.Auth
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental

@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
-{- |
+{-|
 Module      :  GitHub.REST.Endpoint
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental
