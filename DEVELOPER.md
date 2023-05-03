@@ -25,8 +25,8 @@ The following linters must pass CI in order for your PR to be accepted.
 * fourmolu
 
     ```bash
-    stack install fourmolu-0.7.0.1
-    fourmolu -i $(git ls-files '*.hs')
+    cabal install fourmolu-0.12.0.0
+    fourmolu -i .
     ```
 
 ## Run tests

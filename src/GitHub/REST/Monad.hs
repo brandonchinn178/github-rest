@@ -98,7 +98,7 @@ initGitHubManager ghSettings = do
 
  Useful for implementing 'MonadGitHubREST' outside of 'GitHubT'.
 -}
-queryGitHubPageIO :: FromJSON a => GitHubManager -> GHEndpoint -> IO (a, PageLinks)
+queryGitHubPageIO :: (FromJSON a) => GitHubManager -> GHEndpoint -> IO (a, PageLinks)
 queryGitHubPageIO GitHubManager{..} ghEndpoint = do
   let GitHubSettings{..} = ghSettings
 
@@ -165,12 +165,12 @@ newtype GitHubT m a = GitHubT
     , MonadTrans
     )
 
-instance MonadUnliftIO m => MonadUnliftIO (GitHubT m) where
+instance (MonadUnliftIO m) => MonadUnliftIO (GitHubT m) where
   withRunInIO inner = GitHubT $
     withRunInIO $ \run ->
       inner (run . unGitHubT)
 
-instance MonadIO m => MonadGitHubREST (GitHubT m) where
+instance (MonadIO m) => MonadGitHubREST (GitHubT m) where
   queryGitHubPage ghEndpoint = do
     manager <- GitHubT ask
     liftIO $ queryGitHubPageIO manager ghEndpoint
@@ -180,7 +180,7 @@ instance MonadIO m => MonadGitHubREST (GitHubT m) where
  The token will be sent with each API request -- see 'Token'. The user agent is also required for
  each API request -- see https://developer.github.com/v3/#user-agent-required.
 -}
-runGitHubT :: MonadIO m => GitHubSettings -> GitHubT m a -> m a
+runGitHubT :: (MonadIO m) => GitHubSettings -> GitHubT m a -> m a
 runGitHubT settings action = do
   manager <- liftIO $ initGitHubManager settings
   (`runReaderT` manager) . unGitHubT $ action

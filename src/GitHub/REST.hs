@@ -66,11 +66,11 @@ import GitHub.REST.Monad
 
  https://developer.github.com/v3/#client-errors
 -}
-githubTry :: MonadUnliftIO m => m a -> m (Either Value a)
+githubTry :: (MonadUnliftIO m) => m a -> m (Either Value a)
 githubTry = githubTry' status422
 
 -- | Handle the given exception thrown by the GitHub REST API.
-githubTry' :: MonadUnliftIO m => Status -> m a -> m (Either Value a)
+githubTry' :: (MonadUnliftIO m) => Status -> m a -> m (Either Value a)
 githubTry' status = handleJust statusException (return . Left) . fmap Right
   where
     statusException (HttpExceptionRequest _ (StatusCodeException r body))
@@ -80,7 +80,7 @@ githubTry' status = handleJust statusException (return . Left) . fmap Right
 {- Aeson helpers -}
 
 -- | Get the given key from the Value, erroring if it doesn't exist.
-(.:) :: FromJSON a => Value -> Text -> a
+(.:) :: (FromJSON a) => Value -> Text -> a
 (.:) v key = either error id $ parseEither parseObject v
   where
     parseObject = withObject "parseObject" (`parseField` fromText key)
