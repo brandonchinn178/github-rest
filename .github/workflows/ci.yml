@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FOURMOLU_VERSION: '0.7.0.1'
-      HLINT_VERSION: '3.4.1'
+      HLINT_VERSION: '3.5'
     steps:
       - uses: actions/checkout@v3
 

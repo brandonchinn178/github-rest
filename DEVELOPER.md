@@ -18,7 +18,7 @@ The following linters must pass CI in order for your PR to be accepted.
 * HLint
 
     ```bash
-    stack install hlint-3.4.1
+    cabal install hlint-3.5
     hlint .
     ```
 
