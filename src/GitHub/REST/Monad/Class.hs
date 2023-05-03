@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeApplications #-}
 
-{- |
+{-|
 Module      :  GitHub.REST.Monad.Class
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental
@@ -34,38 +34,37 @@ import Data.Monoid ((<>))
 import GitHub.REST.Endpoint
 import GitHub.REST.PageLinks (PageLinks (..))
 
-{- | A type class for monads that can query the GitHub REST API.
-
- Example:
-
- > -- create the "foo" branch
- > queryGitHub GHEndpoint
- >   { method = POST
- >   , endpoint = "/repos/:owner/:repo/git/refs"
- >   , endpointVals =
- >     [ "owner" := "alice"
- >     , "repo" := "my-project"
- >     ]
- >   , ghData =
- >     [ "ref" := "refs/heads/foo"
- >     , "sha" := "1234567890abcdef"
- >     ]
- >   }
-
- It's recommended that you create functions for the API endpoints you're using:
-
- > deleteBranch branch = queryGitHub GHEndpoint
- >   { method = DELETE
- >   , endpoint = "/repos/:owner/:repo/git/refs/:ref"
- >   , endpointVals =
- >     [ "owner" := "alice"
- >     , "repo" := "my-project"
- >     , "ref" := "heads/" <> branch
- >     ]
- >   , ghData = []
- >   }
--}
-class Monad m => MonadGitHubREST m where
+-- | A type class for monads that can query the GitHub REST API.
+--
+--  Example:
+--
+--  > -- create the "foo" branch
+--  > queryGitHub GHEndpoint
+--  >   { method = POST
+--  >   , endpoint = "/repos/:owner/:repo/git/refs"
+--  >   , endpointVals =
+--  >     [ "owner" := "alice"
+--  >     , "repo" := "my-project"
+--  >     ]
+--  >   , ghData =
+--  >     [ "ref" := "refs/heads/foo"
+--  >     , "sha" := "1234567890abcdef"
+--  >     ]
+--  >   }
+--
+--  It's recommended that you create functions for the API endpoints you're using:
+--
+--  > deleteBranch branch = queryGitHub GHEndpoint
+--  >   { method = DELETE
+--  >   , endpoint = "/repos/:owner/:repo/git/refs/:ref"
+--  >   , endpointVals =
+--  >     [ "owner" := "alice"
+--  >     , "repo" := "my-project"
+--  >     , "ref" := "heads/" <> branch
+--  >     ]
+--  >   , ghData = []
+--  >   }
+class (Monad m) => MonadGitHubREST m where
   {-# MINIMAL queryGitHubPage #-}
 
   -- | Query GitHub, returning @(payload, links)@ if successful, where @payload@ is the
@@ -75,10 +74,10 @@ class Monad m => MonadGitHubREST m where
   --
   -- Errors on network connection failures, if GitHub sent back an error message, or if the response
   -- could not be decoded as JSON. Use `githubTry` if you wish to handle GitHub errors.
-  queryGitHubPage :: FromJSON a => GHEndpoint -> m (a, PageLinks)
+  queryGitHubPage :: (FromJSON a) => GHEndpoint -> m (a, PageLinks)
 
   -- | 'queryGitHubPage', except ignoring pagination links.
-  queryGitHub :: FromJSON a => GHEndpoint -> m a
+  queryGitHub :: (FromJSON a) => GHEndpoint -> m a
   queryGitHub = fmap fst . queryGitHubPage
 
   -- | Repeatedly calls 'queryGitHubPage' for each page returned by GitHub and concatenates the
@@ -98,16 +97,16 @@ class Monad m => MonadGitHubREST m where
 
 {- Instances for common monad transformers -}
 
-instance MonadGitHubREST m => MonadGitHubREST (ReaderT r m) where
+instance (MonadGitHubREST m) => MonadGitHubREST (ReaderT r m) where
   queryGitHubPage = lift . queryGitHubPage
 
-instance MonadGitHubREST m => MonadGitHubREST (ExceptT e m) where
+instance (MonadGitHubREST m) => MonadGitHubREST (ExceptT e m) where
   queryGitHubPage = lift . queryGitHubPage
 
-instance MonadGitHubREST m => MonadGitHubREST (IdentityT m) where
+instance (MonadGitHubREST m) => MonadGitHubREST (IdentityT m) where
   queryGitHubPage = lift . queryGitHubPage
 
-instance MonadGitHubREST m => MonadGitHubREST (MaybeT m) where
+instance (MonadGitHubREST m) => MonadGitHubREST (MaybeT m) where
   queryGitHubPage = lift . queryGitHubPage
 
 instance (Monoid w, MonadGitHubREST m) => MonadGitHubREST (Lazy.RWST r w s m) where
@@ -116,10 +115,10 @@ instance (Monoid w, MonadGitHubREST m) => MonadGitHubREST (Lazy.RWST r w s m) wh
 instance (Monoid w, MonadGitHubREST m) => MonadGitHubREST (Strict.RWST r w s m) where
   queryGitHubPage = lift . queryGitHubPage
 
-instance MonadGitHubREST m => MonadGitHubREST (Lazy.StateT s m) where
+instance (MonadGitHubREST m) => MonadGitHubREST (Lazy.StateT s m) where
   queryGitHubPage = lift . queryGitHubPage
 
-instance MonadGitHubREST m => MonadGitHubREST (Strict.StateT s m) where
+instance (MonadGitHubREST m) => MonadGitHubREST (Strict.StateT s m) where
   queryGitHubPage = lift . queryGitHubPage
 
 instance (Monoid w, MonadGitHubREST m) => MonadGitHubREST (Lazy.WriterT w m) where

@@ -37,7 +37,7 @@ goldens name fp action = goldenVsString name ("test/goldens/" ++ fp) $ runGitHub
         , apiVersion = ""
         }
 
-showResult :: Monad m => m (Either Value Value) -> m ByteString
+showResult :: (Monad m) => m (Either Value Value) -> m ByteString
 showResult m =
   m >>= \case
     Right v -> error $ "Got back invalid result: " ++ show v

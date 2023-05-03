@@ -14,10 +14,9 @@ import Data.Semigroup (Semigroup(..))
 import Data.Text (Text)
 import qualified Data.Text as Text
 
-{- | Helper type for GitHub pagination.
-
- https://developer.github.com/v3/guides/traversing-with-pagination/
--}
+-- | Helper type for GitHub pagination.
+--
+--  https://developer.github.com/v3/guides/traversing-with-pagination/
 data PageLinks = PageLinks
   { pageFirst :: Maybe Text
   , pagePrev :: Maybe Text
@@ -55,12 +54,11 @@ parsePageLinks = foldl resolve mempty . split ","
             "last" -> pageLinks{pageLast = Just url}
             _ -> error $ "Unknown rel in page link: " ++ show link
 
-{- | Parse a single page link, like:
-
- <https://api.github.com/search/code?q=addClass+user%3Amozilla&page=2>; rel="next"
-
- Returns ("next", "/search/code?q=addClass+user%3Amozilla&page=2")
--}
+-- | Parse a single page link, like:
+--
+--  <https://api.github.com/search/code?q=addClass+user%3Amozilla&page=2>; rel="next"
+--
+--  Returns ("next", "/search/code?q=addClass+user%3Amozilla&page=2")
 parsePageLink :: Text -> (Text, Text)
 parsePageLink link = fromMaybe (error $ "Unknown page link: " ++ show link) $ do
   (linkUrl, linkRel) <- case split ";" link of

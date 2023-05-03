@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 
-{- |
+{-|
 Module      :  GitHub.REST.KeyValue
 Maintainer  :  Brandon Chinn <brandon@leapyear.io>
 Stability   :  experimental
