@@ -1,5 +1,7 @@
 # Unreleased
 
+# v1.1.3
+
 * Add support for GHC 9.4 + 9.6
 * Drop support for GHC < 9
 * Set the `X-GitHub-Api-Version` header instead of setting the API version in the `Accept` header ([#33](https://github.com/brandonchinn178/github-rest/issues/33))
