@@ -41,11 +41,11 @@ dependencies:
 - http-client-tls >= 0.3.5.3 && < 0.4
 - http-types >= 0.12.1 && < 0.13
 - jwt >= 0.9.0 && < 0.12
-- mtl >= 2.2.2 && < 2.3
+- mtl >= 2.2.2 && < 2.4
 - scientific >= 0.3.6.2 && < 0.4
 - text >= 1.2.2.2 && < 2.1
 - time >= 1.8.0.2 && < 1.13
-- transformers >= 0.5.2.0 && < 0.6
+- transformers >= 0.5.2.0 && < 0.7
 - unliftio >= 0.2.7.0 && < 0.3
 - unliftio-core >= 0.1.1.0 && < 0.3
 
