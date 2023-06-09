@@ -1,6 +1,6 @@
 # github-rest
 
-[![GitHub Actions](https://img.shields.io/github/workflow/status/LeapYear/github-rest/CI/main)](https://github.com/LeapYear/github-rest/actions?query=branch%3Amain)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/brandonchinn178/github-rest/ci.yml?branch=main)](https://github.com/brandonchinn178/github-rest/actions?query=branch%3Amain)
 [![Codecov](https://codecov.io/gh/LeapYear/github-rest/branch/main/graph/badge.svg?token=8TErU2ntw9)](https://codecov.io/gh/LeapYear/github-rest)
 [![Hackage](https://img.shields.io/hackage/v/github-rest)](https://hackage.haskell.org/package/github-rest)
 
