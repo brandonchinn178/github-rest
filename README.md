@@ -1,7 +1,7 @@
 # github-rest
 
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/brandonchinn178/github-rest/ci.yml?branch=main)](https://github.com/brandonchinn178/github-rest/actions?query=branch%3Amain)
-[![Codecov](https://codecov.io/gh/LeapYear/github-rest/branch/main/graph/badge.svg?token=8TErU2ntw9)](https://codecov.io/gh/LeapYear/github-rest)
+[![Codecov](https://codecov.io/gh/brandonchinn178/github-rest/branch/main/graph/badge.svg?token=8TErU2ntw9)](https://codecov.io/gh/brandonchinn178/github-rest)
 [![Hackage](https://img.shields.io/hackage/v/github-rest)](https://hackage.haskell.org/package/github-rest)
 
 A package providing a more flexible interface to accessing the [GitHub API](https://developer.github.com/v3/).

@@ -5,9 +5,9 @@ verbatim:
 license: BSD3
 license-file: LICENSE.md
 author:
-  - Brandon Chinn <brandon@leapyear.io>
+  - Brandon Chinn <brandonchinn178@gmail.com>
 maintainer:
-  - Brandon Chinn <brandon@leapyear.io>
+  - Brandon Chinn <brandonchinn178@gmail.com>
 category: GitHub
 synopsis: Query the GitHub REST API programmatically
 description: |
@@ -19,7 +19,7 @@ extra-source-files:
   - CHANGELOG.md
   - test/**/*.golden
 
-github: LeapYear/github-rest
+github: brandonchinn178/github-rest
 
 ghc-options: -Wall
 when:

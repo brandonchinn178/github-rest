@@ -7,7 +7,7 @@
 
 {-|
 Module      :  GitHub.REST.Monad
-Maintainer  :  Brandon Chinn <brandon@leapyear.io>
+Maintainer  :  Brandon Chinn <brandonchinn178@gmail.com>
 Stability   :  experimental
 Portability :  portable
 
