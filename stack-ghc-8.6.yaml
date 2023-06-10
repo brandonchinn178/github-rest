@@ -1,7 +1,0 @@
-resolver: lts-14.27
-
-extra-deps:
-  - jwt-0.10.0
-
-ghc-options:
-  '$locals': -Werror

@@ -1,8 +1,0 @@
-resolver: lts-18.28
-
-flags:
-  cryptonite:
-    use_target_attributes: false
-
-ghc-options:
-  '$locals': -Werror
