@@ -1,5 +1,9 @@
 # Unreleased
 
+# v1.1.4
+
+* Fix a test failure due to GitHub changing URLs
+
 # v1.1.3
 
 * Add support for GHC 9.4 + 9.6
