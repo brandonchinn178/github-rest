@@ -1,6 +1,6 @@
 cabal-version: >= 1.10
 
--- This file has been generated from package.yaml by hpack version 0.35.2.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -53,7 +53,7 @@ library
     , jwt >=0.9 && <0.12
     , mtl <2.4
     , scientific <0.4
-    , text <2.1
+    , text <2.2
     , time <1.13
     , transformers <0.7
     , unliftio <0.3
