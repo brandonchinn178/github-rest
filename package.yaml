@@ -33,7 +33,7 @@ library:
   source-dirs: src
   dependencies:
   - aeson < 3
-  - base >= 4.15 && < 5
+  - base < 5
   - bytestring < 0.13
   - crypton < 1.1
   - http-client >= 0.5.13 && < 0.8
@@ -54,7 +54,7 @@ tests:
     main:         Main.hs
     dependencies:
     - aeson >= 1.5.6.0
-    - aeson-qq
+    - aeson-qq >= 0.8.4
     - base
     - bytestring
     - crypton
