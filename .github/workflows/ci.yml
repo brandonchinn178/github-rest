@@ -46,6 +46,8 @@ jobs:
           - '9.2'
           - '9.4'
           - '9.6'
+          - '9.8'
+          - '9.10'
         include:
           - ghc_version: '9.0'
             oldest: true
