@@ -1,5 +1,7 @@
 # Unreleased
 
+# v1.2.0
+
 * Switch from `jwt` to `jose-jwt` + `crypton`
     * Removes the `loadSigner` helper, use normal `crypton`/`crypton-x509`/`crypton-x509-store` API
 * Add support for GHC 9.8 + 9.10
