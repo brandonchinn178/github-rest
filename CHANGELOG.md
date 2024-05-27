@@ -1,5 +1,8 @@
 # Unreleased
 
+* Switch from `jwt` to `jose-jwt` + `crypton`
+    * Removes the `loadSigner` helper, use normal `crypton`/`crypton-x509`/`crypton-x509-store` API
+
 # v1.1.4
 
 * Fix a test failure due to GitHub changing URLs

@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -16,27 +16,20 @@ module GitHub.REST.Auth (
 
   -- * Helpers for using JWT tokens with the GitHub API
   getJWTToken,
-  loadSigner,
 ) where
 
+import qualified Crypto.PubKey.RSA as Crypto
+import qualified Data.Aeson.Text as Aeson
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as ByteString
-
-#if !MIN_VERSION_base(4,11,0)
-import Data.Monoid ((<>))
-#endif
-import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
+import qualified Data.Text.Lazy as TextL
 import Data.Time (addUTCTime, getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
-import qualified Web.JWT as JWT
-
-#if MIN_VERSION_jwt(0,11,0)
-type EncodeSigner = JWT.EncodeSigner
-#else
-type EncodeSigner = JWT.Signer
-#endif
+import qualified Jose.Jwa as Jose
+import qualified Jose.Jws as Jose
+import qualified Jose.Jwt as Jose
+import UnliftIO.Exception (Exception, throwIO)
 
 -- | The token to use to authenticate with GitHub.
 data Token
@@ -55,37 +48,30 @@ fromToken = \case
 type AppId = Int
 
 -- | Create a JWT token that expires in 10 minutes.
-getJWTToken :: EncodeSigner -> AppId -> IO Token
-getJWTToken signer appId = mkToken <$> getNow
+getJWTToken :: Crypto.PrivateKey -> AppId -> IO Token
+getJWTToken privKey appId = do
+  -- lose a second in the case of rounding
+  -- https://github.community/t5/GitHub-API-Development-and/quot-Expiration-time-claim-exp-is-too-far-in-the-future-quot/m-p/20457/highlight/true#M1127
+  now <- addUTCTime (-1) <$> getCurrentTime
+
+  BearerToken . Jose.unJwt <$> signToken (mkClaims now)
   where
-    mkToken now =
-      let claims =
-            mempty
-              { JWT.iat = JWT.numericDate $ utcTimeToPOSIXSeconds now
-              , JWT.exp = JWT.numericDate $ utcTimeToPOSIXSeconds now + (10 * 60)
-              , JWT.iss = JWT.stringOrURI $ Text.pack $ show appId
-              }
-       in BearerToken . Text.encodeUtf8 $ signToken signer claims
-    -- lose a second in the case of rounding
-    -- https://github.community/t5/GitHub-API-Development-and/quot-Expiration-time-claim-exp-is-too-far-in-the-future-quot/m-p/20457/highlight/true#M1127
-    getNow = addUTCTime (-1) <$> getCurrentTime
+    mkClaims now =
+      Text.encodeUtf8 . TextL.toStrict . Aeson.encodeToLazyText $
+        Jose.JwtClaims
+          { Jose.jwtIss = Just . Text.pack . show $ appId
+          , Jose.jwtSub = Nothing
+          , Jose.jwtAud = Nothing
+          , Jose.jwtExp = Just . Jose.IntDate $ utcTimeToPOSIXSeconds now + (10 * 60)
+          , Jose.jwtNbf = Nothing
+          , Jose.jwtIat = Just . Jose.IntDate $ utcTimeToPOSIXSeconds now
+          , Jose.jwtJti = Nothing
+          }
+    signToken claims =
+      Jose.rsaEncode Jose.RS256 privKey claims >>= \case
+        Right jwt -> pure jwt
+        Left e -> throwIO $ JwtError e
 
-signToken :: EncodeSigner -> JWT.JWTClaimsSet -> Text
-#if MIN_VERSION_jwt(0,10,0)
-signToken = flip JWT.encodeSigned mempty
-#else
-signToken = JWT.encodeSigned
-#endif
-
--- | Load a RSA private key as a Signer from the given file path.
-loadSigner :: FilePath -> IO EncodeSigner
-loadSigner file = maybe badSigner return . readSigner =<< ByteString.readFile file
-  where
-    badSigner = fail $ "Not a valid RSA private key file: " ++ file
-    readSigner = fmap toEncodeRSAPrivateKey . JWT.readRsaSecret
-
-#if MIN_VERSION_jwt(0,11,0)
-    toEncodeRSAPrivateKey = JWT.EncodeRSAPrivateKey
-#else
-    toEncodeRSAPrivateKey = JWT.RSAPrivateKey
-#endif
+-- https://github.com/tekul/jose-jwt/issues/30
+data JwtError = JwtError Jose.JwtError
+  deriving (Show, Exception)
