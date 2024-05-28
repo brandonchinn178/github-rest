@@ -19,12 +19,13 @@ module GitHub.REST.Auth (
 ) where
 
 import qualified Crypto.PubKey.RSA as Crypto
+import Data.Aeson ((.=))
+import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Text as Aeson
 import Data.ByteString (ByteString)
-import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.Text.Lazy as TextL
-import Data.Time (addUTCTime, getCurrentTime)
+import Data.Time (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import qualified Jose.Jwa as Jose
 import qualified Jose.Jws as Jose
@@ -50,23 +51,19 @@ type AppId = Int
 -- | Create a JWT token that expires in 10 minutes.
 getJWTToken :: Crypto.PrivateKey -> AppId -> IO Token
 getJWTToken privKey appId = do
-  -- lose a second in the case of rounding
-  -- https://github.community/t5/GitHub-API-Development-and/quot-Expiration-time-claim-exp-is-too-far-in-the-future-quot/m-p/20457/highlight/true#M1127
-  now <- addUTCTime (-1) <$> getCurrentTime
+  -- use floor to ensure expiration doesn't go past 10 minutes
+  -- https://github.com/orgs/community/discussions/24635#discussioncomment-3244803
+  now <- floor . utcTimeToPOSIXSeconds <$> getCurrentTime
 
   BearerToken . Jose.unJwt <$> signToken (mkClaims now)
   where
     mkClaims now =
       Text.encodeUtf8 . TextL.toStrict . Aeson.encodeToLazyText $
-        Jose.JwtClaims
-          { Jose.jwtIss = Just . Text.pack . show $ appId
-          , Jose.jwtSub = Nothing
-          , Jose.jwtAud = Nothing
-          , Jose.jwtExp = Just . Jose.IntDate $ utcTimeToPOSIXSeconds now + (10 * 60)
-          , Jose.jwtNbf = Nothing
-          , Jose.jwtIat = Just . Jose.IntDate $ utcTimeToPOSIXSeconds now
-          , Jose.jwtJti = Nothing
-          }
+        Aeson.object
+          [ "iat" .= (now :: Integer)
+          , "exp" .= (now + 10 * 60)
+          , "iss" .= show appId
+          ]
     signToken claims =
       Jose.rsaEncode Jose.RS256 privKey claims >>= \case
         Right jwt -> pure jwt
