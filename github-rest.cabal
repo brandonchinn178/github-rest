@@ -21,8 +21,6 @@ build-type:     Simple
 extra-source-files:
     README.md
     CHANGELOG.md
-    test/goldens/gists-gist_id-sha-404.golden
-    test/goldens/gists-gist_id-sha-422.golden
     test/goldens/gists-gist_id-sha.golden
 
 source-repository head
