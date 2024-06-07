@@ -1,5 +1,9 @@
 # Unreleased
 
+# v1.2.1
+
+* Make integration test more robust
+
 # v1.2.0
 
 * Switch from `jwt` to `jose-jwt` + `crypton`
