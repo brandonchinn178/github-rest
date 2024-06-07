@@ -5,7 +5,7 @@ cabal-version: >= 1.10
 -- see: https://github.com/sol/hpack
 
 name:           github-rest
-version:        1.2.0
+version:        1.2.1
 synopsis:       Query the GitHub REST API programmatically
 description:    Query the GitHub REST API programmatically, which can provide a more
                 flexible and clear interface than if all of the endpoints and their types
@@ -21,8 +21,6 @@ build-type:     Simple
 extra-source-files:
     README.md
     CHANGELOG.md
-    test/goldens/gists-gist_id-sha-404.golden
-    test/goldens/gists-gist_id-sha-422.golden
     test/goldens/gists-gist_id-sha.golden
 
 source-repository head
