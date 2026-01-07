@@ -7,37 +7,6 @@ on:
   workflow_call:
 
 jobs:
-  build_and_test:
-    name: build_and_test
-    runs-on: ubuntu-latest
-    steps:
-      -
-        uses: actions/checkout@v3
-      -
-        uses: actions/cache@v3
-        with:
-          path: ~/.stack
-          key: ${{ runner.os }}-stack-cache-${{ hashFiles('stack.yaml', 'package.yaml') }}
-      -
-        name: Build + Test
-        run: stack test --haddock --no-haddock-deps --coverage
-      -
-        name: Check that files are unmodified
-        run: git diff --exit-code
-      -
-        name: Convert coverage output
-        run: |
-          HPC_LCOV_VERSION=1.1.1
-          curl -fsSL \
-            "https://github.com/brandonchinn178/hpc-lcov/releases/download/v${HPC_LCOV_VERSION}/hpc-lcov-${HPC_LCOV_VERSION}-linux-x86_64" \
-            -o /usr/local/bin/hpc-lcov
-          chmod +x /usr/local/bin/hpc-lcov
-          hpc-lcov
-      -
-        uses: codecov/codecov-action@v3
-        with:
-          files: lcov.info
-
   ghc_compat_test:
     strategy:
       matrix:
@@ -45,6 +14,8 @@ jobs:
           - '9.6'
           - '9.8'
           - '9.10'
+          - '9.12'
+          - '9.14'
         include:
           - ghc_version: '9.6.1'
             oldest: true
@@ -54,7 +25,7 @@ jobs:
 
     steps:
       -
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       -
         id: setup
         name: Set up GHC ${{ matrix.ghc_version }}
@@ -69,6 +40,23 @@ jobs:
             --test-options="--color=always"
             --test-show-details=streaming
       -
+        if: ${{ matrix.ghc_version == '9.14' }}
+        name: Configure for 9.14
+        run:
+          cabal configure --enable-append
+            --allow-newer='aeson:*'
+            --allow-newer='containers:*'
+            --allow-newer='hashable:*'
+            --allow-newer='indexed-traversable:*'
+            --allow-newer='indexed-traversable-instances:*'
+            --allow-newer='semialign:*'
+            --allow-newer='text-iso8601:*'
+            --allow-newer='th-expand-syns:*'
+            --allow-newer='th-orphans:*'
+            --allow-newer='these:*'
+            --allow-newer='time-compat:*'
+            --allow-newer='uuid-types:*'
+      -
         if: ${{ matrix.oldest }}
         name: Use oldest dependencies
         run:
@@ -81,7 +69,7 @@ jobs:
         name: Get current month to clear cache
         run: echo "CURR_MONTH=$(date +%B)" | tee -a "$GITHUB_ENV"
       -
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.setup.outputs.cabal-store }}
           key: ${{ runner.os }}-cabal-cache-${{ env.CURR_MONTH }}-${{ matrix.ghc_version }}-${{ hashFiles('**/plan.json') }}
@@ -95,10 +83,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FOURMOLU_VERSION: '0.12.0.0'
-      HLINT_VERSION: '3.5'
     steps:
       -
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       -
         name: Install fourmolu
         run: |
@@ -109,39 +96,24 @@ jobs:
       -
         name: Run fourmolu
         run: fourmolu -m check .
-      -
-        name: Install hlint
-        run: |
-          tmpdir=$(mktemp -d)
-          curl -fsSL \
-            "https://github.com/ndmitchell/hlint/releases/download/v${HLINT_VERSION}/hlint-${HLINT_VERSION}-x86_64-linux.tar.gz" \
-            -o "${tmpdir}/hlint.tar.gz"
-          tar xzf "${tmpdir}/hlint.tar.gz" -C "${tmpdir}"
-          mv "${tmpdir}/hlint-${HLINT_VERSION}/hlint" /usr/local/bin/hlint
-          chmod +x /usr/local/bin/hlint
-          rm -rf "${tmpdir}"
-      -
-        name: Run hlint
-        run: hlint .
 
   check_sdist:
     runs-on: ubuntu-latest
     steps:
       -
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       -
-        uses: actions/cache@v3
-        with:
-          path: ~/.stack
-          key: ${{ runner.os }}-check_sdist-${{ hashFiles('stack.yaml', 'package.yaml') }}
+        id: setup
+        name: Set up GHC
+        uses: haskell-actions/setup@v2
       -
         name: Strip unreleased section from CHANGELOG
         run: sed -i -n '/^# Unreleased/d; /^#/,$p' CHANGELOG.md
       -
         name: Create sdist bundle
-        run: stack sdist --test-tarball --tar-dir .
+        run: cabal sdist --output-directory=.
       -
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: github-rest-sdist
           path: github-rest-*.tar.gz
