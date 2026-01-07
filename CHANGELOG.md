@@ -1,5 +1,7 @@
 # Unreleased
 
+* Add support for GHC 9.12 + 9.14
+
 # v1.2.1
 
 * Make integration test more robust
