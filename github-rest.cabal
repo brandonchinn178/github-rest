@@ -1,9 +1,5 @@
 cabal-version: >= 1.10
 
--- This file has been generated from package.yaml by hpack version 0.36.0.
---
--- see: https://github.com/sol/hpack
-
 name:           github-rest
 version:        1.2.1
 synopsis:       Query the GitHub REST API programmatically
